@@ -1011,16 +1011,24 @@ for ldap providers in the same way as above does.
                client connections.
   </description>
 </property>
+<property>
+  <name>ipc.server.log.slow.rpc</name>
+  <value>false</value>
+  <description>This setting is useful to troubleshoot performance issues for
+    various services. If this value is set to true then we log requests that
+    fall into 99th percentile as well as increment RpcSlowCalls counter.
+  </description>
+</property>
 
 <!-- Proxy Configuration -->
 
 <property>
   <name>hadoop.security.impersonation.provider.class</name>
   <value></value>
-  <description>A class which implements ImpersonationProvider interface, used to 
-       authorize whether one user can impersonate a specific user. 
-       If not specified, the DefaultImpersonationProvider will be used. 
-       If a class is specified, then that class will be used to determine 
+  <description>A class which implements ImpersonationProvider interface, used to
+       authorize whether one user can impersonate a specific user.
+       If not specified, the DefaultImpersonationProvider will be used.
+       If a class is specified, then that class will be used to determine
        the impersonation capability.
   </description>
 </property>
