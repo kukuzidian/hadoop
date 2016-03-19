@@ -50,13 +50,9 @@ public class RequestHedgingProxyProvider<T> extends
 
     final Map<String, ProxyInfo<T>> targetProxies;
 
-    final int timeout;
-
     public RequestHedgingInvocationHandler(
             Map<String, ProxyInfo<T>> targetProxies) {
       this.targetProxies = new HashMap<>(targetProxies);
-      this.timeout = conf.getInt(DFSConfigKeys.DFS_CLIENT_FAILOVER_CONNECTION_RETRIES_ON_GET_TIMEOUTS_KEY,
-          DFSConfigKeys.DFS_CLIENT_FALOVER_CONNECTION_ON_GET_TIMEOUTS_DEFAULT);
     }
 
     /**
@@ -108,7 +104,7 @@ public class RequestHedgingProxyProvider<T> extends
           Future<Object> callResultFuture = completionService.take();
           Object retVal;
           try {
-            retVal = callResultFuture.get(timeout, TimeUnit.SECONDS);
+            retVal = callResultFuture.get();
             successfulProxy = proxyMap.get(callResultFuture);
             if (LOG.isDebugEnabled()) {
               LOG.debug("Invocation successful on ["

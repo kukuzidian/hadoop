@@ -122,8 +122,6 @@ public class DFSConfigKeys extends CommonConfigurationKeys {
   public static final int     DFS_CLIENT_FAILOVER_CONNECTION_RETRIES_ON_SOCKET_TIMEOUTS_DEFAULT = 0;
   public static final String  DFS_CLIENT_RETRY_MAX_ATTEMPTS_KEY = "dfs.client.retry.max.attempts";
   public static final int     DFS_CLIENT_RETRY_MAX_ATTEMPTS_DEFAULT = 10;
-  public static final String  DFS_CLIENT_FAILOVER_CONNECTION_RETRIES_ON_GET_TIMEOUTS_KEY = "dfs.client.failover.connection.get.timeouts.seconds";
-  public static final int     DFS_CLIENT_FALOVER_CONNECTION_ON_GET_TIMEOUTS_DEFAULT = 5;
   
   public static final String  DFS_CLIENT_SOCKET_CACHE_EXPIRY_MSEC_KEY = "dfs.client.socketcache.expiryMsec";
   public static final long    DFS_CLIENT_SOCKET_CACHE_EXPIRY_MSEC_DEFAULT = 3000;
