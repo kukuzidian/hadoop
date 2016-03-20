@@ -53,13 +53,23 @@ public class RMAppsBlock extends AppsBlock {
   @Override
   protected void renderData(Block html) {
     TBODY<TABLE<Hamlet>> tbody =
-        html.table("#apps").thead().tr().th(".id", "ID").th(".user", "User")
-          .th(".name", "Name").th(".type", "Application Type")
-          .th(".queue", "Queue").th(".starttime", "StartTime")
-          .th(".finishtime", "FinishTime").th(".state", "State")
-          .th(".finalstatus", "FinalStatus").th(".progress", "Progress")
-          .th(".ui", "Tracking UI").th(".blacklisted", "Blacklisted Nodes")._()
-          ._().tbody();
+        html.table("#apps").thead().tr()
+          .th(".id", "ID")
+          .th(".user", "User")
+          .th(".name", "Name")
+          .th(".type", "Application Type")
+          .th(".queue", "Queue")
+          .th(".starttime", "StartTime")
+          .th(".finishtime", "FinishTime")
+          .th(".state", "State")
+          .th(".finalstatus", "FinalStatus")
+          .th(".runningcontainer", "Running Containers")
+          .th(".allocatedCpu", "Allocated CPU VCores")
+          .th(".allocatedMemory", "Allocated Memory MB")
+          .th(".progress", "Progress")
+          .th(".ui", "Tracking UI")
+          .th(".blacklisted", "Blacklisted Nodes")
+          ._()._().tbody();
 
     StringBuilder appsTableData = new StringBuilder("[\n");
     for (ApplicationReport appReport : appReports) {
@@ -108,6 +118,15 @@ public class RMAppsBlock extends AppsBlock {
         .append(app.getAppState() == null ? UNAVAILABLE : app.getAppState())
         .append("\",\"")
         .append(app.getFinalAppStatus())
+        .append("\",\"")
+        .append(app.getRunningContainers() == -1 ? "N/A" : String
+            .valueOf(app.getRunningContainers()))
+        .append("\",\"")
+        .append(app.getAllocatedCpuVcores() == -1 ? "N/A" : String
+            .valueOf(app.getAllocatedCpuVcores()))
+        .append("\",\"")
+        .append(app.getAllocatedMemoryMB() == -1 ? "N/A" :
+            String.valueOf(app.getAllocatedMemoryMB()))
         .append("\",\"")
         // Progress bar
         .append("<br title='").append(percent).append("'> <div class='")

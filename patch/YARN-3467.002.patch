@@ -1,0 +1,105 @@
+diff --git hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-common/src/main/java/org/apache/hadoop/yarn/server/webapp/WebPageUtils.java hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-common/src/main/java/org/apache/hadoop/yarn/server/webapp/WebPageUtils.java
+index 6ca5011..ed0fe38 100644
+--- hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-common/src/main/java/org/apache/hadoop/yarn/server/webapp/WebPageUtils.java
++++ hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-common/src/main/java/org/apache/hadoop/yarn/server/webapp/WebPageUtils.java
+@@ -52,9 +52,9 @@ private static String getAppsTableColumnDefs(
+       .append(", 'mRender': renderHadoopDate }")
+       .append("\n, {'sType':'numeric', bSearchable:false, 'aTargets':");
+     if (isFairSchedulerPage) {
+-      sb.append("[11]");
++      sb.append("[13]");
+     } else if (isResourceManager) {
+-      sb.append("[10]");
++      sb.append("[12]");
+     } else {
+       sb.append("[9]");
+     }
+diff --git hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-common/src/main/java/org/apache/hadoop/yarn/server/webapp/dao/AppInfo.java hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-common/src/main/java/org/apache/hadoop/yarn/server/webapp/dao/AppInfo.java
+index 5d9ba6f..0cc5f75 100644
+--- hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-common/src/main/java/org/apache/hadoop/yarn/server/webapp/dao/AppInfo.java
++++ hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-common/src/main/java/org/apache/hadoop/yarn/server/webapp/dao/AppInfo.java
+@@ -58,6 +58,8 @@
+   protected long finishedTime;
+   protected long elapsedTime;
+   protected String applicationTags;
++  private int allocatedCpuVcores;
++  private int allocatedMemoryMB;
+ 
+   public AppInfo() {
+     // JAXB needs this
+@@ -86,6 +88,10 @@ public AppInfo(ApplicationReport app) {
+     if (app.getApplicationResourceUsageReport() != null) {
+       runningContainers =
+           app.getApplicationResourceUsageReport().getNumUsedContainers();
++      allocatedCpuVcores = app.getApplicationResourceUsageReport()
++          .getUsedResources().getVirtualCores();
++      allocatedMemoryMB = app.getApplicationResourceUsageReport()
++          .getUsedResources().getMemory();
+     }
+     progress = app.getProgress() * 100; // in percent
+     if (app.getApplicationTags() != null && !app.getApplicationTags().isEmpty()) {
+@@ -133,6 +139,14 @@ public int getRunningContainers() {
+     return runningContainers;
+   }
+ 
++  public int getAllocatedCpuVcores() {
++    return allocatedCpuVcores;
++  }
++
++  public int getAllocatedMemoryMB() {
++    return allocatedMemoryMB;
++  }
++
+   public float getProgress() {
+     return progress;
+   }
+diff --git hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-resourcemanager/src/main/java/org/apache/hadoop/yarn/server/resourcemanager/webapp/FairSchedulerAppsBlock.java hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-resourcemanager/src/main/java/org/apache/hadoop/yarn/server/resourcemanager/webapp/FairSchedulerAppsBlock.java
+index 80099d0..f257656 100644
+--- hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-resourcemanager/src/main/java/org/apache/hadoop/yarn/server/resourcemanager/webapp/FairSchedulerAppsBlock.java
++++ hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-resourcemanager/src/main/java/org/apache/hadoop/yarn/server/resourcemanager/webapp/FairSchedulerAppsBlock.java
+@@ -93,6 +93,8 @@ public FairSchedulerAppsBlock(ResourceManager rm, ViewContext ctx,
+             th(".state", "State").
+             th(".finalstatus", "FinalStatus").
+             th(".runningcontainer", "Running Containers").
++            th(".allocatedCpu", "Allocated CPU VCores").
++            th(".allocatedMemory", "Allocated Memory MB").
+             th(".progress", "Progress").
+             th(".ui", "Tracking UI")._()._().
+         tbody();
+@@ -136,6 +138,10 @@ public FairSchedulerAppsBlock(ResourceManager rm, ViewContext ctx,
+       .append(appInfo.getFinalStatus()).append("\",\"")
+       .append(appInfo.getRunningContainers() == -1 ? "N/A" : String
+          .valueOf(appInfo.getRunningContainers())).append("\",\"")
++      .append(appInfo.getAllocatedVCores() == -1 ? "N/A" : String
++        .valueOf(appInfo.getAllocatedVCores())).append("\",\"")
++      .append(appInfo.getAllocatedMB() == -1 ? "N/A" : String
++        .valueOf(appInfo.getAllocatedMB())).append("\",\"")
+       // Progress bar
+       .append("<br title='").append(percent)
+       .append("'> <div class='").append(C_PROGRESSBAR).append("' title='")
+diff --git hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-resourcemanager/src/main/java/org/apache/hadoop/yarn/server/resourcemanager/webapp/RMAppsBlock.java hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-resourcemanager/src/main/java/org/apache/hadoop/yarn/server/resourcemanager/webapp/RMAppsBlock.java
+index 1d97bef..d252c30 100644
+--- hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-resourcemanager/src/main/java/org/apache/hadoop/yarn/server/resourcemanager/webapp/RMAppsBlock.java
++++ hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-resourcemanager/src/main/java/org/apache/hadoop/yarn/server/resourcemanager/webapp/RMAppsBlock.java
+@@ -60,6 +60,8 @@ protected void renderData(Block html) {
+           .th(".finishtime", "FinishTime").th(".state", "State")
+           .th(".finalstatus", "FinalStatus")
+           .th(".runningcontainer", "Running Containers")
++          .th(".allocatedCpu", "Allocated CPU VCores")
++          .th(".allocatedMemory", "Allocated Memory MB")
+           .th(".progress", "Progress")
+           .th(".ui", "Tracking UI").th(".blacklisted", "Blacklisted Nodes")._()
+           ._().tbody();
+@@ -114,6 +116,12 @@ protected void renderData(Block html) {
+         .append(app.getRunningContainers() == -1 ? "N/A" : String
+             .valueOf(app.getRunningContainers()))
+         .append("\",\"")
++        .append(app.getAllocatedCpuVcores() == -1 ? "N/A" : String
++            .valueOf(app.getAllocatedCpuVcores()))
++        .append("\",\"")
++        .append(app.getAllocatedMemoryMB() == -1 ? "N/A" : String
++            .valueOf(app.getAllocatedMemoryMB()))
++        .append("\",\"")
+         // Progress bar
+         .append("<br title='").append(percent).append("'> <div class='")
+         .append(C_PROGRESSBAR).append("' title='").append(join(percent, '%'))
