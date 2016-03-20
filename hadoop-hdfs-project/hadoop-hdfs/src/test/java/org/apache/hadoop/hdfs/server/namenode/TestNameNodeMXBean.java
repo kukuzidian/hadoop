@@ -372,4 +372,23 @@ public class TestNameNodeMXBean {
       }
     }
   }
+
+  @Test(timeout = 120000)
+  public void testQueueLength() throws Exception {
+    final Configuration conf = new Configuration();
+    MiniDFSCluster cluster = null;
+    try {
+      cluster = new MiniDFSCluster.Builder(conf).numDataNodes(0).build();
+      cluster.waitActive();
+      MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+      ObjectName mxbeanNameFs =
+              new ObjectName("Hadoop:service=NameNode,name=FSNamesystem");
+      int queueLength = (int) mbs.getAttribute(mxbeanNameFs, "LockQueueLength");
+      assertEquals(0, queueLength);
+    } finally {
+      if (cluster != null) {
+        cluster.shutdown();
+      }
+    }
+  }
 }

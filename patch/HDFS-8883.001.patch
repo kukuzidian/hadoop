@@ -1,0 +1,171 @@
+diff --git a/hadoop-common-project/hadoop-common/src/site/markdown/Metrics.md b/hadoop-common-project/hadoop-common/src/site/markdown/Metrics.md
+index 646cda5..7bf69db 100644
+--- a/hadoop-common-project/hadoop-common/src/site/markdown/Metrics.md
++++ b/hadoop-common-project/hadoop-common/src/site/markdown/Metrics.md
+@@ -236,6 +236,7 @@ Each metrics record contains tags such as HAState and Hostname as additional inf
+ | `NumActiveClients` | Current number of active clients holding lease |
+ | `HAState` | (HA-only) Current state of the NameNode: initializing or active or standby or stopping state |
+ | `FSState` | Current state of the file system: Safemode or Operational |
++| `LockQueueLength` | Number of threads waiting to acquire FSNameSystem lock |
+ 
+ JournalNode
+ -----------
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/FSNamesystem.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/FSNamesystem.java
+index 4cc3073..d34242c 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/FSNamesystem.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/FSNamesystem.java
+@@ -3911,6 +3911,21 @@ public int getNumEncryptionZones() {
+     return dir.ezManager.getNumEncryptionZones();
+   }
+ 
++  /**
++   * Returns the length of the wait Queue for the FSNameSystemLock.
++   *
++   * A larger number here indicates lots of threads are waiting for
++   * FSNameSystemLock.
++   *
++   * @return int - Number of Threads waiting to acquire FSNameSystemLock
++   */
++  @Override
++  @Metric({"LockQueueLength", "Number of threads waiting to " +
++      "acquire FSNameSystemLock"})
++  public int getFsLockQueueLength() {
++    return fsLock.getQueueLength();
++  }
++
+   int getNumberOfDatanodes(DatanodeReportType type) {
+     readLock();
+     try {
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/FSNamesystemLock.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/FSNamesystemLock.java
+index 7e820d8..d239796 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/FSNamesystemLock.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/FSNamesystemLock.java
+@@ -59,4 +59,15 @@ public int getWriteHoldCount() {
+   public boolean isWriteLockedByCurrentThread() {
+     return coarseLock.isWriteLockedByCurrentThread();
+   }
++
++  /**
++   * Returns the QueueLength of waiting threads.
++   *
++   * A larger number indicates greater lock contention.
++   *
++   * @return int - Number of threads waiting on this lock
++   */
++  public int getQueueLength() {
++    return coarseLock.getQueueLength();
++  }
+ }
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/metrics/FSNamesystemMBean.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/metrics/FSNamesystemMBean.java
+index 580cb78..0fa4841 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/metrics/FSNamesystemMBean.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/metrics/FSNamesystemMBean.java
+@@ -189,4 +189,13 @@
+    * Return the number of encryption zones in the system.
+    */
+   int getNumEncryptionZones();
++
++  /**
++   * Returns the length of the wait Queue for the FSNameSystemLock.
++   *
++   * A larger number here indicates lots of threads are waiting for
++   * FSNameSystemLock.
++   * @return int - Number of Threads waiting to acquire FSNameSystemLock
++   */
++  int getFsLockQueueLength();
+ }
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/hdfs/server/namenode/TestFSNamesystem.java b/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/hdfs/server/namenode/TestFSNamesystem.java
+index 26bb4f7..7f72797 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/hdfs/server/namenode/TestFSNamesystem.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/hdfs/server/namenode/TestFSNamesystem.java
+@@ -37,10 +37,15 @@
+ import org.apache.hadoop.hdfs.server.namenode.ha.HAState;
+ import org.apache.hadoop.hdfs.server.namenode.snapshot.Snapshot;
+ import org.junit.After;
++import org.junit.Assert;
+ import org.junit.Test;
+ import org.mockito.Mockito;
+ import org.mockito.internal.util.reflection.Whitebox;
+ 
++import java.util.concurrent.CountDownLatch;
++import java.util.concurrent.ExecutorService;
++import java.util.concurrent.Executors;
++
+ public class TestFSNamesystem {
+ 
+   @After
+@@ -233,4 +238,27 @@ public void testGetEffectiveLayoutVersion() {
+     assertEquals(-63,
+         FSNamesystem.getEffectiveLayoutVersion(false, -63, -61, -63));
+   }
+
+  @Test
+  public void testFSLockGetWaiterCount() throws InterruptedException {
+    final int threadCount = 3;
+    final CountDownLatch latch = new CountDownLatch(threadCount);
+    final FSNamesystemLock rwLock = new FSNamesystemLock(true);
+    rwLock.writeLock().lock();
+    ExecutorService helper = Executors.newFixedThreadPool(threadCount);
+
+    for (int x = 0; x < threadCount; x++) {
+      helper.execute(new Runnable() {
+        @Override
+        public void run() {
+          latch.countDown();
+          rwLock.readLock().lock();
+        }
+      });
+    }
+
+    latch.await();
+    Assert.assertEquals("Expected number of blocked thread not found",
+                        threadCount, rwLock.getQueueLength());
+  }
+ }
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/hdfs/server/namenode/TestNameNodeMXBean.java b/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/hdfs/server/namenode/TestNameNodeMXBean.java
+index 2087c44..f8aa317 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/hdfs/server/namenode/TestNameNodeMXBean.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/hdfs/server/namenode/TestNameNodeMXBean.java
+@@ -17,8 +17,8 @@
+  */
+ package org.apache.hadoop.hdfs.server.namenode;
+ 
+-import org.apache.commons.io.FileUtils;
+ import com.google.common.util.concurrent.Uninterruptibles;
++import org.apache.commons.io.FileUtils;
+ import org.apache.hadoop.conf.Configuration;
+ import org.apache.hadoop.fs.FileSystem;
+ import org.apache.hadoop.fs.FileUtil;
+@@ -173,7 +173,7 @@ public void testNameNodeMXBeanInfo() throws Exception {
+       // This will cause the first dir to fail.
+       File failedNameDir = new File(nameDirUris.iterator().next());
+       assertEquals(0, FileUtil.chmod(
+-        new File(failedNameDir, "current").getAbsolutePath(), "000"));
++          new File(failedNameDir, "current").getAbsolutePath(), "000"));
+       cluster.getNameNodeRpc().rollEditLog();
+       
+       nameDirStatuses = (String) (mbs.getAttribute(mxbeanName,
+@@ -376,4 +376,23 @@ public void testTopUsersNoPeriods() throws Exception {
+       }
+     }
+   }
++
++  @Test(timeout = 120000)
++  public void testQueueLength() throws Exception {
++    final Configuration conf = new Configuration();
++    MiniDFSCluster cluster = null;
++    try {
++      cluster = new MiniDFSCluster.Builder(conf).numDataNodes(0).build();
++      cluster.waitActive();
++      MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
++      ObjectName mxbeanNameFs =
++          new ObjectName("Hadoop:service=NameNode,name=FSNamesystem");
++      int queueLength = (int) mbs.getAttribute(mxbeanNameFs, "LockQueueLength");
++      assertEquals(0, queueLength);
++    } finally {
++      if (cluster != null) {
++        cluster.shutdown();
++      }
++    }
++  }
+ }
