@@ -8337,5 +8337,30 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
     }
   }
 
+  /**
+   * Return total number of Sync Operations on FSEditLog.
+   */
+  @Override
+  @Metric({"TotalSyncCount",
+              "Total number of sync operations performed on edit logs"})
+  public long getTotalSyncCount() {
+    return fsImage.editLog.getTotalSyncCount();
+  }
+
+  /**
+   * Return total time spent doing sync operations on FSEditLog.
+   */
+  @Override
+  @Metric({"TotalSyncTimes",
+              "Total time spend in sync operation on various edit logs"})
+  public String getTotalSyncTimes() {
+    JournalSet journalSet = fsImage.editLog.getJournalSet();
+    if (journalSet != null) {
+      return journalSet.getSyncTimes();
+    } else {
+      return "";
+    }
+  }
+
 }
 

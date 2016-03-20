@@ -184,4 +184,14 @@ public interface FSNamesystemMBean {
    * @return JSON string
    */
   public String getTopUserOpCounts();
+
+  /**
+   * Return total number of Sync Operations on FSEditLog.
+   */
+  long getTotalSyncCount();
+
+  /**
+   * Return total time spent doing sync operations on FSEditLog.
+   */
+  String getTotalSyncTimes();
 }

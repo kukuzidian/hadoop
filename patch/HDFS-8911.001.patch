@@ -1,0 +1,127 @@
+diff --git a/hadoop-common-project/hadoop-common/src/site/markdown/Metrics.md b/hadoop-common-project/hadoop-common/src/site/markdown/Metrics.md
+index 7bf69db..de706ad 100644
+--- a/hadoop-common-project/hadoop-common/src/site/markdown/Metrics.md
++++ b/hadoop-common-project/hadoop-common/src/site/markdown/Metrics.md
+@@ -237,6 +237,8 @@ Each metrics record contains tags such as HAState and Hostname as additional inf
+ | `HAState` | (HA-only) Current state of the NameNode: initializing or active or standby or stopping state |
+ | `FSState` | Current state of the file system: Safemode or Operational |
+ | `LockQueueLength` | Number of threads waiting to acquire FSNameSystem lock |
++| `TotalSyncCount` | Total number of sync operations performed by edit log |
++| `TotalSyncTimes` | Total number of milliseconds spent by various edit logs in sync operation|
+ 
+ JournalNode
+ -----------
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/FSEditLog.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/FSEditLog.java
+index 939e841..b1960d9 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/FSEditLog.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/FSEditLog.java
+@@ -1691,4 +1691,11 @@ private JournalManager createJournal(URI uri) {
+     }
+   }
+ 
++  /**
++   +   * Return total number of syncs happened on this edit log.
++   +   * @return long - count
++   +   */
++  public long getTotalSyncCount() {
++    return editLogStream.getNumSync();
++  }
+ }
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/FSNamesystem.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/FSNamesystem.java
+index 4c71cd5..a7dc54e 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/FSNamesystem.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/FSNamesystem.java
+@@ -7277,5 +7277,24 @@ private static void enableAsyncAuditLog() {
+     }
+   }
+ 
++  /**
++   * Return total number of Sync Operations on FSEditLog.
++   */
++  @Override
++  @Metric({"TotalSyncCount",
++              "Total number of sync operations performed on edit logs"})
++  public long getTotalSyncCount() {
++    return fsImage.editLog.getTotalSyncCount();
++  }
++
++  /**
++   * Return total time spent doing sync operations on FSEditLog.
++   */
++  @Override
++  @Metric({"TotalSyncTimes",
++              "Total time spend in sync operation on various edit logs"})
++  public String getTotalSyncTimes() {
++    return fsImage.editLog.getJournalSet().getSyncTimes();
++  }
+ }
+ 
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/metrics/FSNamesystemMBean.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/metrics/FSNamesystemMBean.java
+index 0fa4841..b314f7f 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/metrics/FSNamesystemMBean.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/metrics/FSNamesystemMBean.java
+@@ -198,4 +198,14 @@
+    * @return int - Number of Threads waiting to acquire FSNameSystemLock
+    */
+   int getFsLockQueueLength();
++
++  /**
++   * Return total number of Sync Operations on FSEditLog.
++   */
++  long getTotalSyncCount();
++
++  /**
++   * Return total time spent doing sync operations on FSEditLog.
++   */
++  String getTotalSyncTimes();
+ }
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/hdfs/server/namenode/TestFSNamesystemMBean.java b/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/hdfs/server/namenode/TestFSNamesystemMBean.java
+index fb3179a..3c0d54a 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/hdfs/server/namenode/TestFSNamesystemMBean.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/hdfs/server/namenode/TestFSNamesystemMBean.java
+@@ -30,6 +30,8 @@
+ import javax.management.MBeanServer;
+ import javax.management.ObjectName;
+ 
++import org.apache.hadoop.fs.FileSystem;
++import org.apache.hadoop.fs.Path;
+ import org.apache.hadoop.conf.Configuration;
+ import org.apache.hadoop.hdfs.MiniDFSCluster;
+ import org.junit.Test;
+@@ -159,4 +161,34 @@ public void testWithFSNamesystemWriteLock() throws Exception {
+       }
+     }
+   }
+-}
+\ No newline at end of file
+
+  @Test(timeout = 120000)
+  public void testFsEditLogMetrics() throws Exception {
+    final Configuration conf = new Configuration();
+    MiniDFSCluster cluster = null;
+    try {
+      cluster = new MiniDFSCluster.Builder(conf).numDataNodes(0).build();
+      cluster.waitActive();
+      MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+      ObjectName mxbeanNameFs =
+          new ObjectName("Hadoop:service=NameNode,name=FSNamesystemState");
+
+      FileSystem fs = cluster.getFileSystem();
+      final int NUM_OPS = 10;
+      for (int i = 0; i < NUM_OPS; i++) {
+        final Path path = new Path(String.format("/user%d", i));
+        fs.mkdirs(path);
+      }
+
+      long syncCount = (long) mbs.getAttribute(mxbeanNameFs, "TotalSyncCount");
+      String syncTimes =
+          (String) mbs.getAttribute(mxbeanNameFs, "TotalSyncTimes");
+      assertTrue(syncCount > 0);
+      assertNotNull(syncTimes);
+    } finally {
+      if (cluster != null) {
+        cluster.shutdown();
+      }
+    }
+  }
+}
