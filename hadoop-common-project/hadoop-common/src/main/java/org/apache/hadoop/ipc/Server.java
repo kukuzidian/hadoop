@@ -98,12 +98,8 @@ import org.apache.hadoop.ipc.protobuf.RpcHeaderProtos.RpcSaslProto;
 import org.apache.hadoop.ipc.protobuf.RpcHeaderProtos.RpcSaslProto.SaslAuth;
 import org.apache.hadoop.ipc.protobuf.RpcHeaderProtos.RpcSaslProto.SaslState;
 import org.apache.hadoop.net.NetUtils;
-import org.apache.hadoop.security.AccessControlException;
-import org.apache.hadoop.security.SaslPropertiesResolver;
-import org.apache.hadoop.security.SaslRpcServer;
+import org.apache.hadoop.security.*;
 import org.apache.hadoop.security.SaslRpcServer.AuthMethod;
-import org.apache.hadoop.security.SecurityUtil;
-import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.security.UserGroupInformation.AuthenticationMethod;
 import org.apache.hadoop.security.authorize.AuthorizationException;
 import org.apache.hadoop.security.authorize.PolicyProvider;
@@ -366,6 +362,7 @@ public abstract class Server {
   private SecretManager<TokenIdentifier> secretManager;
   private SaslPropertiesResolver saslPropsResolver;
   private ServiceAuthorizationManager serviceAuthorizationManager = new ServiceAuthorizationManager();
+  private WhiteList whiteList = new WhiteList();
 
   private int maxQueueSize;
   private final int maxRespSize;
@@ -1978,6 +1975,7 @@ public abstract class Server {
      */
     private void authorizeConnection() throws WrappedRpcServerException {
       try {
+        whileListAuthorize(user, getHostInetAddress().getHostAddress());
         // If auth method is TOKEN, the token was obtained by the
         // real user for the effective user, therefore not required to
         // authorize real user. doAs is allowed only for simple or kerberos
@@ -1994,10 +1992,32 @@ public abstract class Server {
       } catch (AuthorizationException ae) {
         LOG.info("Connection from " + this
             + " for protocol " + connectionContext.getProtocol()
-            + " is unauthorized for user " + user);
+            + " is unauthorized for user=" + user + " & hostname="
+            + this.getHostInetAddress().getHostName());
         rpcMetrics.incrAuthorizationFailures();
         throw new WrappedRpcServerException(
             RpcErrorCodeProto.FATAL_UNAUTHORIZED, ae);
+      }
+    }
+
+    /**
+     * Authorize proxy user from sepecial ip by whitelist in ip.txt
+     * @throws AuthorizationException - user is not allowed to proxy
+     */
+    private void whileListAuthorize(UserGroupInformation user,String ip)
+        throws AuthorizationException {
+      if(user != null && user.getUserName() != null){
+        if(!WhiteList.contain(ip, user.getUserName())){
+          LOG.error("Authorize  fail  name for connection from" + addr
+              + " for user=" + user.getUserName() + " ip=" + ip);
+          throw new AuthorizationException("Authorize  fail  name for connection from "
+              + addr + " for user=" + user + " ip=" + ip);
+        }
+      } else {
+        LOG.error("Authorize  fail  name for connection from" + addr
+            + " for user=" + user .getUserName()+ " ip=" + ip);
+        throw new AuthorizationException(" Authorize  fail  name for connection from "
+            + addr + " for user=" + user + " ip=" + ip);
       }
     }
     
