@@ -73,36 +73,32 @@ jQuery.fn.dataTableExt.oApi.fnSetFilteringDelay = function ( oSettings, iDelay )
   return this;
 }
 
+Date.prototype.Format = function (fmt) {
+  var o = {
+    "M+": this.getMonth() + 1,
+    "d+": this.getDate(),
+    "h+": this.getHours(),
+    "m+": this.getMinutes(),
+    "s+": this.getSeconds(),
+    "q+": Math.floor((this.getMonth() + 3) / 3),
+    "S": this.getMilliseconds()
+  };
+  if (/(y+)/.test(fmt)) fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
+  for (var k in o)
+    if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+  return fmt;
+};
+
 function renderHadoopDate(data, type, full) {
   if (type === 'display' || type === 'filter') {
-    if(data === '0'|| data === '-1') {
+    if(data === '0') {
       return "N/A";
     }
-    var date = new Date(parseInt(data));
-    var monthList = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    var weekdayList = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    var offsetMinutes = date.getTimezoneOffset();
-    var offset
-    if (offsetMinutes <= 0) {
-      offset = "+" + zeroPad(-offsetMinutes / 60 * 100, 4);
-    } else {
-      offset = "-" + zeroPad(offsetMinutes / 60 * 100, 4);
-    }
-
-    // EEE MMM dd HH:mm:ss Z yyyy
-    return weekdayList[date.getDay()] + " " +
-        monthList[date.getMonth()] + " " +
-        date.getDate() + " " +
-        zeroPad(date.getHours(), 2) + ":" +
-        zeroPad(date.getMinutes(), 2) + ":" +
-        zeroPad(date.getSeconds(), 2) + " " +
-        offset + " " +
-        date.getFullYear();
+    return new Date(parseInt(data)).Format("yyyy-MM-dd hh:mm:ss");
   }
   // 'sort', 'type' and undefined all just use the number
   // If date is 0, then for purposes of sorting it should be consider max_int
-  return data === '0' ? '9007199254740992' : data;  
+  return data === '0' ? '9007199254740992' : data;
 }
 
 function zeroPad(n, width) {
