@@ -116,7 +116,7 @@ public class RedisBasedGroupsMapping implements GroupMappingServiceProvider, Con
             REDIS_IP = redisIp;
             isChanged = true;
         }
-        int maxTotal = conf.getInt("hadoop.security.group.mapping.redis.maxTotal", 10000);
+        int maxTotal = conf.getInt("hadoop.security.group.mapping.redis.maxTotal", 500);
         JedisPoolConfig config = new JedisPoolConfig();
         config.setMaxTotal(maxTotal);
         config.setMinIdle(10);
