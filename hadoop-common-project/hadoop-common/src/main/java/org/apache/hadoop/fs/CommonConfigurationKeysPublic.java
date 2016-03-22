@@ -263,6 +263,8 @@ public class CommonConfigurationKeysPublic {
   /** See <a href="{@docRoot}/../core-default.html">core-default.xml</a> */
   public static final String  HADOOP_SECURITY_GROUPS_CACHE_SECS =
     "hadoop.security.groups.cache.secs";
+  public static final String  HADOOP_SECURITY_GROUPS_MAPPING_REDIS_IP =
+    "hadoop.security.group.mapping.redis.ip";
   /** See <a href="{@docRoot}/../core-default.html">core-default.xml</a> */
   public static final long HADOOP_SECURITY_GROUPS_CACHE_SECS_DEFAULT =
     300;

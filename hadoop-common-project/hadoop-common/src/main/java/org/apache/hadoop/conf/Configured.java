@@ -26,7 +26,7 @@ import org.apache.hadoop.classification.InterfaceStability;
 @InterfaceStability.Stable
 public class Configured implements Configurable {
 
-  private Configuration conf;
+  public Configuration conf;
 
   /** Construct a Configured. */
   public Configured() {

@@ -146,7 +146,7 @@ public class FSDirectory implements Closeable {
   // be deleted unless they are empty.
   //
   // Each entry in this set must be a normalized path.
-  private final SortedSet<String> protectedDirectories;
+  private volatile SortedSet<String> protectedDirectories;
 
   // lock to protect the directory and BlockMap
   private final ReentrantReadWriteLock dirLock;
@@ -332,6 +332,13 @@ public class FSDirectory implements Closeable {
 
   SortedSet<String> getProtectedDirectories() {
     return protectedDirectories;
+  }
+
+  public void setProtectedDirectories(Configuration conf) {
+    // Normalize each input path to guard against administrator error.
+    this.protectedDirectories = new TreeSet<>(normalizePaths(
+        conf.getTrimmedStringCollection(FS_PROTECTED_DIRECTORIES),
+        FS_PROTECTED_DIRECTORIES));
   }
 
   BlockManager getBlockManager() {

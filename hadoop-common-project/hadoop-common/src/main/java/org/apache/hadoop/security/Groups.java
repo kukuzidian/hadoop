@@ -37,6 +37,7 @@ import org.apache.hadoop.HadoopIllegalArgumentException;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceAudience.Private;
 import org.apache.hadoop.classification.InterfaceStability;
+import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.CommonConfigurationKeys;
 import org.apache.hadoop.util.ReflectionUtils;
@@ -59,7 +60,7 @@ import org.apache.commons.logging.LogFactory;
 public class Groups {
   private static final Log LOG = LogFactory.getLog(Groups.class);
   
-  private final GroupMappingServiceProvider impl;
+  public final GroupMappingServiceProvider impl;
 
   private final LoadingCache<String, List<String>> cache;
   private final Map<String, List<String>> staticUserToGroupsMap =
@@ -241,7 +242,7 @@ public class Groups {
       long deltaMs = endMs - startMs ;
       UserGroupInformation.metrics.addGetGroups(deltaMs);
       if (deltaMs > warningDeltaMs) {
-        LOG.warn("Potential performance problem: getGroups(user=" + user +") " +
+        LOG.warn("Potential performance problem: getGroups(user=" + user + ") " +
           "took " + deltaMs + " milliseconds.");
       }
 
@@ -317,5 +318,11 @@ public class Groups {
 
     GROUPS = new Groups(conf);
     return GROUPS;
+  }
+
+  public static synchronized void refreshGroupsMappingServiceConf(Configuration conf) {
+      if (GROUPS.impl instanceof Configurable) {
+        ((Configurable) GROUPS.impl).setConf(conf);
+      }
   }
 }

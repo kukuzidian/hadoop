@@ -57,7 +57,8 @@ public class WhiteList {
     }
 
     public WhiteList() {
-        String currentPath = Thread.currentThread().getContextClassLoader().getResource("").getPath();
+        String currentPath = Thread.currentThread().getContextClassLoader()
+            .getResource("").getPath();
         LOG.info(currentPath);
         String filePath = currentPath + "ip.txt";
         TimeLoader tl = this.new TimeLoader(filePath);

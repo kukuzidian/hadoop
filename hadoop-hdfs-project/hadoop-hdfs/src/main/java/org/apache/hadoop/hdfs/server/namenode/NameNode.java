@@ -24,6 +24,8 @@ import com.google.common.collect.Lists;
 import org.apache.hadoop.HadoopIllegalArgumentException;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.conf.ReconfigurableBase;
+import org.apache.hadoop.conf.ReconfigurationException;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Trash;
 import org.apache.hadoop.ha.HAServiceProtocol.HAServiceState;
@@ -60,10 +62,7 @@ import org.apache.hadoop.ipc.StandbyException;
 import org.apache.hadoop.metrics2.lib.DefaultMetricsSystem;
 import org.apache.hadoop.metrics2.util.MBeans;
 import org.apache.hadoop.net.NetUtils;
-import org.apache.hadoop.security.AccessControlException;
-import org.apache.hadoop.security.RefreshUserMappingsProtocol;
-import org.apache.hadoop.security.SecurityUtil;
-import org.apache.hadoop.security.UserGroupInformation;
+import org.apache.hadoop.security.*;
 import org.apache.hadoop.security.authorize.RefreshAuthorizationPolicyProtocol;
 import org.apache.hadoop.tools.GetUserMappingsProtocol;
 import org.apache.hadoop.tracing.SpanReceiverHost;
@@ -72,7 +71,6 @@ import org.apache.hadoop.util.ExitUtil.ExitException;
 import org.apache.hadoop.util.JvmPauseMonitor;
 import org.apache.hadoop.util.ServicePlugin;
 import org.apache.hadoop.util.StringUtils;
-import org.apache.log4j.LogManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,15 +81,14 @@ import java.io.PrintStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.security.PrivilegedExceptionAction;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.apache.hadoop.fs.CommonConfigurationKeysPublic.FS_DEFAULT_NAME_KEY;
 import static org.apache.hadoop.fs.CommonConfigurationKeysPublic.FS_TRASH_INTERVAL_DEFAULT;
 import static org.apache.hadoop.fs.CommonConfigurationKeysPublic.FS_TRASH_INTERVAL_KEY;
+import static org.apache.hadoop.fs.CommonConfigurationKeysPublic.HADOOP_SECURITY_GROUPS_MAPPING_REDIS_IP;
+import static org.apache.hadoop.hdfs.DFSConfigKeys.FS_PROTECTED_DIRECTORIES;
 import static org.apache.hadoop.hdfs.DFSConfigKeys.DFS_HA_AUTO_FAILOVER_ENABLED_DEFAULT;
 import static org.apache.hadoop.hdfs.DFSConfigKeys.DFS_HA_AUTO_FAILOVER_ENABLED_KEY;
 import static org.apache.hadoop.hdfs.DFSConfigKeys.DFS_HA_FENCE_METHODS_KEY;
@@ -168,9 +165,35 @@ import static org.apache.hadoop.util.ToolRunner.confirmPrompt;
  * NameNode state, for example partial blocksMap etc.
  **********************************************************/
 @InterfaceAudience.Private
-public class NameNode implements NameNodeStatusMXBean {
+public class NameNode extends ReconfigurableBase implements NameNodeStatusMXBean {
   static{
     HdfsConfiguration.init();
+  }
+
+  static final List<String> RECONFIGURABLE_PROPERTIES =
+      Collections.unmodifiableList(Arrays.asList(
+        FS_PROTECTED_DIRECTORIES,
+        HADOOP_SECURITY_GROUPS_MAPPING_REDIS_IP));
+
+  @Override
+  public Collection<String> getReconfigurableProperties() {
+    return RECONFIGURABLE_PROPERTIES;
+  }
+
+  @Override
+  protected void reconfigurePropertyImpl(String property, String newVal)
+      throws ReconfigurationException {
+    if (newVal != null) {
+      conf.set(property, newVal);
+      switch (property) {
+        case FS_PROTECTED_DIRECTORIES:
+          namesystem.getFSDirectory().setProtectedDirectories(conf);
+          break;
+        case HADOOP_SECURITY_GROUPS_MAPPING_REDIS_IP:
+          Groups.refreshGroupsMappingServiceConf(conf);
+          break;
+      }
+    }
   }
 
   /**
@@ -304,8 +327,7 @@ public class NameNode implements NameNodeStatusMXBean {
   public static final HAState ACTIVE_STATE = new ActiveState();
   public static final HAState STANDBY_STATE = new StandbyState();
   
-  protected FSNamesystem namesystem; 
-  protected final Configuration conf;
+  protected FSNamesystem namesystem;
   protected final NamenodeRole role;
   private volatile HAState state;
   private final boolean haEnabled;
@@ -796,8 +818,8 @@ public class NameNode implements NameNodeStatusMXBean {
   }
 
   protected NameNode(Configuration conf, NamenodeRole role) 
-      throws IOException { 
-    this.conf = conf;
+      throws IOException {
+    super(conf);
     this.role = role;
     setClientNamenodeAddress(conf);
     String nsId = getNameServiceId(conf);

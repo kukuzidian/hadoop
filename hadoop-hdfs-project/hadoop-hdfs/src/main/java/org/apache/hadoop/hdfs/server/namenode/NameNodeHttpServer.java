@@ -27,6 +27,7 @@ import javax.servlet.ServletContext;
 
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.conf.ReconfigurationServlet;
 import org.apache.hadoop.hdfs.DFSConfigKeys;
 import org.apache.hadoop.hdfs.DFSUtil;
 import org.apache.hadoop.hdfs.server.common.JspHelper;
@@ -42,18 +43,18 @@ import org.apache.hadoop.security.SecurityUtil;
 import org.apache.hadoop.security.UserGroupInformation;
 
 /**
- * Encapsulates the HTTP server started by the NameNode. 
+ * Encapsulates the HTTP server started by the NameNode.
  */
 @InterfaceAudience.Private
 public class NameNodeHttpServer {
   private HttpServer2 httpServer;
   private final Configuration conf;
   private final NameNode nn;
-  
+
   private InetSocketAddress httpAddress;
   private InetSocketAddress httpsAddress;
   private final InetSocketAddress bindAddress;
-  
+
   public static final String NAMENODE_ADDRESS_ATTRIBUTE_KEY = "name.node.address";
   public static final String FSIMAGE_ATTRIBUTE_KEY = "name.system.image";
   protected static final String NAMENODE_ATTRIBUTE_KEY = "name.node";
@@ -138,7 +139,7 @@ public class NameNodeHttpServer {
 
     httpServer.setAttribute(NAMENODE_ATTRIBUTE_KEY, nn);
     httpServer.setAttribute(JspHelper.CURRENT_CONF, conf);
-    setupServlets(httpServer, conf);
+    setupServlets(httpServer, conf, nn);
     httpServer.start();
 
     int connIdx = 0;
@@ -154,7 +155,7 @@ public class NameNodeHttpServer {
           NetUtils.getHostPortString(httpsAddress));
     }
   }
-  
+
   private Map<String, String> getAuthFilterParams(Configuration conf)
       throws IOException {
     Map<String, String> params = new HashMap<String, String>();
@@ -210,7 +211,7 @@ public class NameNodeHttpServer {
 
   /**
    * Sets fsimage for use by servlets.
-   * 
+   *
    * @param fsImage FSImage to set
    */
   void setFSImage(FSImage fsImage) {
@@ -219,7 +220,7 @@ public class NameNodeHttpServer {
 
   /**
    * Sets address of namenode for use by servlets.
-   * 
+   *
    * @param nameNodeAddress InetSocketAddress to set
    */
   void setNameNodeAddress(InetSocketAddress nameNodeAddress) {
@@ -229,24 +230,24 @@ public class NameNodeHttpServer {
 
   /**
    * Sets startup progress of namenode for use by servlets.
-   * 
+   *
    * @param prog StartupProgress to set
    */
   void setStartupProgress(StartupProgress prog) {
     httpServer.setAttribute(STARTUP_PROGRESS_ATTRIBUTE_KEY, prog);
   }
 
-  private static void setupServlets(HttpServer2 httpServer, Configuration conf) {
+  private static void setupServlets(HttpServer2 httpServer, Configuration conf, NameNode namenode) {
     httpServer.addInternalServlet("startupProgress",
         StartupProgressServlet.PATH_SPEC, StartupProgressServlet.class);
     httpServer.addInternalServlet("getDelegationToken",
-        GetDelegationTokenServlet.PATH_SPEC, 
+        GetDelegationTokenServlet.PATH_SPEC,
         GetDelegationTokenServlet.class, true);
-    httpServer.addInternalServlet("renewDelegationToken", 
-        RenewDelegationTokenServlet.PATH_SPEC, 
+    httpServer.addInternalServlet("renewDelegationToken",
+        RenewDelegationTokenServlet.PATH_SPEC,
         RenewDelegationTokenServlet.class, true);
-    httpServer.addInternalServlet("cancelDelegationToken", 
-        CancelDelegationTokenServlet.PATH_SPEC, 
+    httpServer.addInternalServlet("cancelDelegationToken",
+        CancelDelegationTokenServlet.PATH_SPEC,
         CancelDelegationTokenServlet.class, true);
     httpServer.addInternalServlet("fsck", "/fsck", FsckServlet.class,
         true);
@@ -260,6 +261,9 @@ public class NameNodeHttpServer {
         FileChecksumServlets.RedirectServlet.class, false);
     httpServer.addInternalServlet("contentSummary", "/contentSummary/*",
         ContentSummaryServlet.class, false);
+    httpServer.setAttribute(ReconfigurationServlet.CONF_SERVLET_RECONFIGURABLE_PREFIX
+        + "/nnconfchange", namenode);
+    httpServer.addServlet("nnconfchange", "/nnconfchange", ReconfigurationServlet.class);
   }
 
   static FSImage getFsImageFromContext(ServletContext context) {
