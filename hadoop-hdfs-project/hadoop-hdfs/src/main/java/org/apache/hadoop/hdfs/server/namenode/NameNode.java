@@ -184,6 +184,7 @@ public class NameNode extends ReconfigurableBase implements NameNodeStatusMXBean
   protected void reconfigurePropertyImpl(String property, String newVal)
       throws ReconfigurationException {
     if (newVal != null) {
+      LOG.info(property + " has changed to " + newVal);
       conf.set(property, newVal);
       switch (property) {
         case FS_PROTECTED_DIRECTORIES:

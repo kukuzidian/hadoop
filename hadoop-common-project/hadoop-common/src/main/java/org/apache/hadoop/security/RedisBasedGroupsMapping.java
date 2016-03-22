@@ -87,21 +87,24 @@ public class RedisBasedGroupsMapping implements GroupMappingServiceProvider, Con
      */
     private static List<String> getGroupsFromRedis(final String user) throws IOException {
         ArrayList<String> result =  new ArrayList<>();
-        Jedis redis = null;
+        Jedis jedis = null;
         try {
             lock.readLock().lock();
-            redis = pool.getResource();
-            Set<String> set = redis.smembers("u_" + user);
+            jedis = pool.getResource();
+            Set<String> set = jedis.smembers("u_" + user);
             result = new ArrayList<>(set);
         } catch(Exception e) {
             LOG.error(e);
         } finally {
+            lock.readLock().unlock();
             try {
-                pool.returnResource(redis);
+                if (jedis != null) {
+                    jedis.close();
+                }
+                jedis = null;
             } catch (Exception e) {
                 LOG.error(e);
             }
-            lock.readLock().unlock();
         }
         result.add(user);
         return result;
@@ -122,19 +125,37 @@ public class RedisBasedGroupsMapping implements GroupMappingServiceProvider, Con
         config.setMinIdle(10);
         if (isChanged) {
             LOG.info("Init redis pool, ip=" + REDIS_IP);
-            lock.writeLock().lock();
+            JedisPool oldPool = null;
             try {
-                pool = new JedisPool(config, REDIS_IP, 6379, 0);
+                if (pool != null) {
+                    JedisPool newPool = new JedisPool(config, REDIS_IP, 6379, 0);
+                    lock.writeLock().lock();
+                    oldPool = pool;
+                    pool = newPool;
+                    newPool = null;
+                } else {
+                    lock.writeLock().lock();
+                    pool = new JedisPool(config, REDIS_IP, 6379, 0);
+                }
             } catch(Exception e) {
                 LOG.error(e);
             } finally {
                 lock.writeLock().unlock();
+                try {
+                    if (oldPool != null) {
+                        oldPool.destroy();
+                    }
+                } catch (Exception ex) {
+                    LOG.error(ex);
+                } finally {
+                    oldPool = null;
+                }
             }
         }
     }
 
     @Override
     public Configuration getConf() {
-        return null;
+        return conf;
     }
 }
