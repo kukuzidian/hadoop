@@ -63,24 +63,20 @@ public class WhiteList {
         String filePath = currentPath + "ip.txt";
         TimeLoader tl = this.new TimeLoader(filePath);
         tl.start();
-        LOG.info(">>>>>>>>>>>>>>>>>>>>>>>ReadFile start...");
+        LOG.info(">>>>>>>>>>>>>>>>>>>>>>>WhiteList start...");
         print();
     }
 
     public WhiteList(String filePath) {
         TimeLoader tl = this.new TimeLoader(filePath);
         tl.start();
-        LOG.info(">>>>>>>>>>>>>>>>>>>>>>>ReadFile start...");
+        LOG.info(">>>>>>>>>>>>>>>>>>>>>>>WhiteList start...");
         print();
     }
 
 
     public static void print() {
-        try {
-            LOG.info(">>print totalSize =  " + ipUserMap.size());
-        } finally {
-            lock.unlock();
-        }
+        LOG.info(">>print totalSize =  " + ipUserMap.size());
     }
 
     public static boolean contain(String ip, String username) {
@@ -243,7 +239,7 @@ public class WhiteList {
                     lock.lock();
                     ipUserMap.clear();
                     ipHashSet.clear();
-                    LOG.info("ip.txt is not exist ...path=" + filePath);
+                    LOG.info("ip.txt does not exist ...path=" + filePath);
                 } finally {
                     lock.unlock();
                 }
