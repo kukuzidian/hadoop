@@ -22,6 +22,7 @@ import static org.apache.hadoop.ipc.RpcConstants.AUTHORIZATION_FAILED_CALL_ID;
 import static org.apache.hadoop.ipc.RpcConstants.CONNECTION_CONTEXT_CALL_ID;
 import static org.apache.hadoop.ipc.RpcConstants.CURRENT_VERSION;
 import static org.apache.hadoop.ipc.RpcConstants.PING_CALL_ID;
+import static org.apache.hadoop.fs.CommonConfigurationKeysPublic.HADOOP_SECURITY_USE_WHITELIST;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -62,6 +63,7 @@ import java.util.TimerTask;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.security.sasl.Sasl;
@@ -73,7 +75,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceAudience.Private;
-import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configuration.IntegerRanges;
 import org.apache.hadoop.fs.CommonConfigurationKeys;
@@ -362,7 +363,8 @@ public abstract class Server {
   private SecretManager<TokenIdentifier> secretManager;
   private SaslPropertiesResolver saslPropsResolver;
   private ServiceAuthorizationManager serviceAuthorizationManager = new ServiceAuthorizationManager();
-  private WhiteList whiteList = new WhiteList();
+  public AtomicBoolean useWhiteList = new AtomicBoolean(false);
+  public volatile WhiteList whiteList = null;
 
   private int maxQueueSize;
   private final int maxRespSize;
@@ -1975,7 +1977,9 @@ public abstract class Server {
      */
     private void authorizeConnection() throws WrappedRpcServerException {
       try {
-        whileListAuthorize(user, getHostInetAddress().getHostAddress());
+        if (useWhiteList.get()) {
+          whileListAuthorize(user, getHostInetAddress().getHostAddress());
+        }
         // If auth method is TOKEN, the token was obtained by the
         // real user for the effective user, therefore not required to
         // authorize real user. doAs is allowed only for simple or kerberos
@@ -2004,19 +2008,19 @@ public abstract class Server {
      * Authorize proxy user from sepecial ip by whitelist in ip.txt
      * @throws AuthorizationException - user is not allowed to proxy
      */
-    private void whileListAuthorize(UserGroupInformation user,String ip)
+    private void whileListAuthorize(UserGroupInformation user, String ip)
         throws AuthorizationException {
-      if(user != null && user.getUserName() != null){
-        if(!WhiteList.contain(ip, user.getUserName())){
+      if (user != null && user.getUserName() != null) {
+        if (!whiteList.contain(ip, user.getUserName())) {
           LOG.error("Authorize  fail  name for connection from" + addr
               + " for user=" + user.getUserName() + " ip=" + ip);
-          throw new AuthorizationException("Authorize  fail  name for connection from "
+          throw new AuthorizationException("Authorize fail name for connection from "
               + addr + " for user=" + user + " ip=" + ip);
         }
       } else {
         LOG.error("Authorize  fail  name for connection from" + addr
             + " for user=" + user .getUserName()+ " ip=" + ip);
-        throw new AuthorizationException(" Authorize  fail  name for connection from "
+        throw new AuthorizationException(" Authorize fail name for connection from "
             + addr + " for user=" + user + " ip=" + ip);
       }
     }

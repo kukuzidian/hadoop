@@ -67,10 +67,8 @@ import org.apache.hadoop.security.authorize.RefreshAuthorizationPolicyProtocol;
 import org.apache.hadoop.tools.GetUserMappingsProtocol;
 import org.apache.hadoop.tracing.SpanReceiverHost;
 import org.apache.hadoop.tracing.TraceAdminProtocol;
+import org.apache.hadoop.util.*;
 import org.apache.hadoop.util.ExitUtil.ExitException;
-import org.apache.hadoop.util.JvmPauseMonitor;
-import org.apache.hadoop.util.ServicePlugin;
-import org.apache.hadoop.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -166,7 +164,7 @@ import static org.apache.hadoop.util.ToolRunner.confirmPrompt;
  **********************************************************/
 @InterfaceAudience.Private
 public class NameNode extends ReconfigurableBase implements NameNodeStatusMXBean {
-  static{
+  static {
     HdfsConfiguration.init();
   }
 
@@ -184,7 +182,6 @@ public class NameNode extends ReconfigurableBase implements NameNodeStatusMXBean
   protected void reconfigurePropertyImpl(String property, String newVal)
       throws ReconfigurationException {
     if (newVal != null) {
-      LOG.info(property + " has changed to " + newVal);
       conf.set(property, newVal);
       switch (property) {
         case FS_PROTECTED_DIRECTORIES:
@@ -192,6 +189,9 @@ public class NameNode extends ReconfigurableBase implements NameNodeStatusMXBean
           break;
         case HADOOP_SECURITY_GROUPS_MAPPING_REDIS_IP:
           Groups.refreshGroupsMappingServiceConf(conf);
+          rpcServer.refreshWhiteList(conf);
+          break;
+        default:
           break;
       }
     }
@@ -269,7 +269,7 @@ public class NameNode extends ReconfigurableBase implements NameNodeStatusMXBean
     DFS_HA_AUTO_FAILOVER_ENABLED_KEY
   };
   
-  private static final String USAGE = "Usage: java NameNode ["
+  private static final String USAGE = "Usage: hdfs namenode ["
       + StartupOption.BACKUP.getName() + "] | \n\t["
       + StartupOption.CHECKPOINT.getName() + "] | \n\t["
       + StartupOption.FORMAT.getName() + " ["
@@ -329,6 +329,7 @@ public class NameNode extends ReconfigurableBase implements NameNodeStatusMXBean
   public static final HAState STANDBY_STATE = new StandbyState();
   
   protected FSNamesystem namesystem;
+  protected final WhiteList whiteList;
   protected final NamenodeRole role;
   private volatile HAState state;
   private final boolean haEnabled;
@@ -829,6 +830,7 @@ public class NameNode extends ReconfigurableBase implements NameNodeStatusMXBean
     state = createHAState(getStartupOption(conf));
     this.allowStaleStandbyReads = HAUtil.shouldAllowStandbyReads(conf);
     this.haContext = createHAContext();
+    this.whiteList = new WhiteList(conf);
     try {
       initializeGenericKeys(conf, nsId, namenodeId);
       initialize(conf);
@@ -847,6 +849,7 @@ public class NameNode extends ReconfigurableBase implements NameNodeStatusMXBean
       throw e;
     }
     this.started.set(true);
+    startReconfigurationTask();
   }
 
   protected HAState createHAState(StartupOption startOpt) {
@@ -890,7 +893,9 @@ public class NameNode extends ReconfigurableBase implements NameNodeStatusMXBean
     } catch (ServiceFailedException e) {
       LOG.warn("Encountered exception while exiting state ", e);
     } finally {
+      shutdownReconfigurationTask();
       stopCommonServices();
+      whiteList.close();
       if (metrics != null) {
         metrics.shutdown();
       }

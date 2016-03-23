@@ -321,7 +321,7 @@ public class Groups {
   }
 
   public static synchronized void refreshGroupsMappingServiceConf(Configuration conf) {
-      if (GROUPS.impl instanceof Configurable) {
+      if (GROUPS.impl != null && GROUPS.impl instanceof Configurable) {
         ((Configurable) GROUPS.impl).setConf(conf);
       }
   }

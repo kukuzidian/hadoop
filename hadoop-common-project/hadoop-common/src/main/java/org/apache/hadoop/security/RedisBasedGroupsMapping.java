@@ -48,7 +48,6 @@ public class RedisBasedGroupsMapping implements GroupMappingServiceProvider, Con
     private static volatile JedisPool pool = null;
     private static ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
-
     /**
      * Returns list of groups for a user
      *
@@ -113,20 +112,39 @@ public class RedisBasedGroupsMapping implements GroupMappingServiceProvider, Con
     @Override
     public void setConf(Configuration conf) {
         this.conf = conf;
+        initRedisPool();
+    }
+
+    public void initRedisPool() {
         String redisIp = conf.get(HADOOP_SECURITY_GROUPS_MAPPING_REDIS_IP);
+        if (redisIp == null || redisIp.equals("")) {
+            if (pool != null) {
+                LOG.info("Redis IP is null, destroy redis pool");
+                try {
+                    pool.destroy();
+                } catch (Exception ex) {
+                    LOG.error(ex);
+                } finally {
+                    pool = null;
+                }
+            }
+            return;
+        }
+
         boolean isChanged = false;
         if (REDIS_IP == null || !REDIS_IP.equals(redisIp)) {
             REDIS_IP = redisIp;
             isChanged = true;
         }
         int maxTotal = conf.getInt("hadoop.security.group.mapping.redis.maxTotal", 500);
-        JedisPoolConfig config = new JedisPoolConfig();
-        config.setMaxTotal(maxTotal);
-        config.setMinIdle(10);
+
         if (isChanged) {
             LOG.info("Init redis pool, ip=" + REDIS_IP);
             JedisPool oldPool = null;
             try {
+                JedisPoolConfig config = new JedisPoolConfig();
+                config.setMaxTotal(maxTotal);
+                config.setMinIdle(10);
                 if (pool != null) {
                     JedisPool newPool = new JedisPool(config, REDIS_IP, 6379, 0);
                     lock.writeLock().lock();
@@ -137,8 +155,8 @@ public class RedisBasedGroupsMapping implements GroupMappingServiceProvider, Con
                     lock.writeLock().lock();
                     pool = new JedisPool(config, REDIS_IP, 6379, 0);
                 }
-            } catch(Exception e) {
-                LOG.error(e);
+            } catch (Exception ex) {
+                LOG.error(ex);
             } finally {
                 lock.writeLock().unlock();
                 try {

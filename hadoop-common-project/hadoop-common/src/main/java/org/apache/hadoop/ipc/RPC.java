@@ -50,6 +50,7 @@ import org.apache.hadoop.ipc.protobuf.RpcHeaderProtos.RpcResponseHeaderProto.Rpc
 import org.apache.hadoop.net.NetUtils;
 import org.apache.hadoop.security.SaslRpcServer;
 import org.apache.hadoop.security.UserGroupInformation;
+import org.apache.hadoop.security.WhiteList;
 import org.apache.hadoop.security.token.SecretManager;
 import org.apache.hadoop.security.token.TokenIdentifier;
 import org.apache.hadoop.conf.*;
@@ -57,6 +58,8 @@ import org.apache.hadoop.util.ReflectionUtils;
 import org.apache.hadoop.util.Time;
 
 import com.google.protobuf.BlockingService;
+
+import static org.apache.hadoop.fs.CommonConfigurationKeysPublic.HADOOP_SECURITY_USE_WHITELIST;
 
 /** A simple RPC mechanism.
  *
@@ -809,6 +812,15 @@ public class RPC {
         return className;
       }
       return names[names.length-1];
+    }
+
+    public void setWhiteList(WhiteList whiteList) {
+      this.whiteList = whiteList;
+      this.useWhiteList.getAndSet(whiteList != null);
+    }
+
+    public void refreshWhiteList(Configuration conf) {
+      this.whiteList
     }
    
    /**

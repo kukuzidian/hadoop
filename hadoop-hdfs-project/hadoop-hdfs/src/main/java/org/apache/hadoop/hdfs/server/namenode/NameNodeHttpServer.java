@@ -139,7 +139,7 @@ public class NameNodeHttpServer {
 
     httpServer.setAttribute(NAMENODE_ATTRIBUTE_KEY, nn);
     httpServer.setAttribute(JspHelper.CURRENT_CONF, conf);
-    setupServlets(httpServer, conf, nn);
+    setupServlets(httpServer, conf);
     httpServer.start();
 
     int connIdx = 0;
@@ -237,7 +237,7 @@ public class NameNodeHttpServer {
     httpServer.setAttribute(STARTUP_PROGRESS_ATTRIBUTE_KEY, prog);
   }
 
-  private static void setupServlets(HttpServer2 httpServer, Configuration conf, NameNode namenode) {
+  private static void setupServlets(HttpServer2 httpServer, Configuration conf) {
     httpServer.addInternalServlet("startupProgress",
         StartupProgressServlet.PATH_SPEC, StartupProgressServlet.class);
     httpServer.addInternalServlet("getDelegationToken",
@@ -261,9 +261,6 @@ public class NameNodeHttpServer {
         FileChecksumServlets.RedirectServlet.class, false);
     httpServer.addInternalServlet("contentSummary", "/contentSummary/*",
         ContentSummaryServlet.class, false);
-    httpServer.setAttribute(ReconfigurationServlet.CONF_SERVLET_RECONFIGURABLE_PREFIX
-        + "/nnconfchange", namenode);
-    httpServer.addServlet("nnconfchange", "/nnconfchange", ReconfigurationServlet.class);
   }
 
   static FSImage getFsImageFromContext(ServletContext context) {

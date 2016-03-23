@@ -17,232 +17,233 @@
  */
 package org.apache.hadoop.security;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import org.apache.commons.codec.digest.DigestUtils;
+import com.google.common.base.Ticker;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.CommonConfigurationKeys;
+import org.apache.hadoop.util.Timer;
+
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisPoolConfig;
+
+import static org.apache.hadoop.fs.CommonConfigurationKeysPublic.HADOOP_SECURITY_GROUPS_MAPPING_REDIS_IP;
 
 public class WhiteList {
 
     private static final Log LOG = LogFactory.getLog(WhiteList.class);
-    private static Map<String, String> ipUserMap = new HashMap<>();
-    private static HashSet<String> ipHashSet = new HashSet<>();
-    private static final String SPLITSTR = " ";
+    private volatile Configuration conf;
+    private static ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+    private LoadingCache<String, Set<String>> cache;
+    private Timer timer;
+    private long cacheTimeout;
+    public static volatile String REDIS_IP = "";
+    private static volatile JedisPool pool = null;
+    private static WhiteList globalWhiteList = null;
 
-    private static Lock lock = new ReentrantLock();
-
-    public static void main(String[] args) {
-
-        System.out.println(Thread.currentThread().getContextClassLoader().getResource(""));
-        System.out.println(WhiteList.class.getResource(""));
-        System.out.println(WhiteList.class.getResource("/"));
-        System.out.println(ClassLoader.getSystemResource(""));
-        System.out.println(System.getProperty("user.dir"));
-
-        WhiteList rf = new WhiteList();
-        TimeLoader tl = rf.new TimeLoader("/home/xiaoju/ip.txt");
-        tl.start();
-    }
-
-    public WhiteList() {
-        String currentPath = Thread.currentThread().getContextClassLoader()
-            .getResource("").getPath();
-        LOG.info(currentPath);
-        String filePath = currentPath + "ip.txt";
-        TimeLoader tl = this.new TimeLoader(filePath);
-        tl.start();
+    public WhiteList(Configuration conf) {
+        this.conf = conf;
+        this.timer = new Timer();
+        this.cacheTimeout =
+                conf.getLong(CommonConfigurationKeys.HADOOP_SECURITY_GROUPS_CACHE_SECS,
+                        CommonConfigurationKeys.HADOOP_SECURITY_GROUPS_CACHE_SECS_DEFAULT) * 1000;
+        this.cache = CacheBuilder.newBuilder()
+                .refreshAfterWrite(cacheTimeout, TimeUnit.MILLISECONDS)
+                .ticker(new TimerToTickerAdapter(timer))
+                .expireAfterWrite(10 * cacheTimeout, TimeUnit.MILLISECONDS)
+                .build(new IpCacheLoader());
+        initRedisPool();
         LOG.info(">>>>>>>>>>>>>>>>>>>>>>>WhiteList start...");
-        print();
     }
 
-    public WhiteList(String filePath) {
-        TimeLoader tl = this.new TimeLoader(filePath);
-        tl.start();
-        LOG.info(">>>>>>>>>>>>>>>>>>>>>>>WhiteList start...");
-        print();
+    /**
+     * Get the groups being used to map user-to-groups.
+     * @param conf
+     * @return the groups being used to map user-to-groups.
+     */
+    public static synchronized WhiteList getWhiteList(Configuration conf) {
+        if(globalWhiteList == null) {
+            if(LOG.isDebugEnabled()) {
+                LOG.debug(" Creating new Groups object");
+            }
+            globalWhiteList = new WhiteList(conf);
+        }
+        return globalWhiteList;
     }
 
-
-    public static void print() {
-        LOG.info(">>print totalSize =  " + ipUserMap.size());
+    public void refreshRedisPool(Configuration conf) {
+        this.conf = conf;
+        initRedisPool();
     }
 
-    public static boolean contain(String ip, String username) {
-        boolean flag = false;
-        try {
-            lock.lock();
-            if (ipHashSet.size() == 0 || ipHashSet.contains(StringUtils.trimToEmpty(ip))) {
-                flag = true;
-            } else {
-                if (ipUserMap.size() == 0) {
-                    flag = true;
+    public void initRedisPool() {
+        String redisIp = conf.get(HADOOP_SECURITY_GROUPS_MAPPING_REDIS_IP);
+        if (redisIp == null || redisIp.equals("")) {
+            close();
+            return;
+        }
+
+        boolean isChanged = false;
+        if (REDIS_IP == null || !REDIS_IP.equals(redisIp)) {
+            REDIS_IP = redisIp;
+            isChanged = true;
+        }
+        int maxTotal = conf.getInt("hadoop.security.group.mapping.redis.maxTotal", 500);
+        JedisPoolConfig config = new JedisPoolConfig();
+        config.setMaxTotal(maxTotal);
+        config.setMinIdle(10);
+        if (isChanged) {
+            LOG.info("Init redis pool, ip=" + REDIS_IP);
+            JedisPool oldPool = null;
+            try {
+                if (pool != null) {
+                    JedisPool newPool = new JedisPool(config, REDIS_IP, 6379, 0);
+                    lock.writeLock().lock();
+                    oldPool = pool;
+                    pool = newPool;
+                    newPool = null;
                 } else {
-                    if (ipUserMap.containsKey(StringUtils.trimToEmpty(ip))) {
-                        if (StringUtils.startsWith(username, "appattempt")) {
-                            flag = true;
-                        } else {
-                            if (ipUserMap.get(ip).contains(username)) {
-                                flag = true;
-                            } else {
-                                LOG.info("Authorize  fail ,can not contain username ---------------1----username="
-                                        + username + " from ip=" + ip + "----");
-                                flag = false;
-                            }
-                        }
-                    } else {
-                        LOG.info("Authorize  fail ,can not contain ip---------------2----ip="
-                                + ip + "----");
-                        flag = false;
+                    lock.writeLock().lock();
+                    pool = new JedisPool(config, REDIS_IP, 6379, 0);
+                }
+            } catch(Exception ex) {
+                LOG.error(ex);
+            } finally {
+                lock.writeLock().unlock();
+                try {
+                    if (oldPool != null) {
+                        oldPool.destroy();
                     }
+                } catch (Exception ex) {
+                    LOG.error(ex);
+                } finally {
+                    oldPool = null;
                 }
             }
+        }
+    }
+
+    /**
+     * Deals with loading data into the cache.
+     */
+    private class IpCacheLoader extends CacheLoader<String, Set<String>> {
+        /**
+         * This method will block if a cache entry doesn't exist, and
+         * any subsequent requests for the same user will wait on this
+         * request to return. If a ip already exists in the cache,
+         * this will be run in the background.
+         * @param ip key of cache
+         * @return List of groups belonging to user
+         * @throws IOException to prevent caching negative entries
+         */
+        @Override
+        public Set<String> load(String ip) throws Exception {
+            Set<String> groups = getKeyFromRedis(ip);
+            return groups;
+        }
+    }
+
+    /**
+     * Queries impl for groups belonging to the user. This could involve I/O and take awhile.
+     */
+    public static Set<String> getKeyFromRedis(String key) {
+        Jedis jedis = null;
+        Set<String> result = null;
+        try {
+            lock.readLock().lock();
+            jedis = pool.getResource();
+            result = jedis.smembers(key);
+        } catch(Exception e) {
+            LOG.error(e);
         } finally {
-            lock.unlock();
+            lock.readLock().unlock();
+            try {
+                if (jedis != null) {
+                    jedis.close();
+                }
+                jedis = null;
+            } catch (Exception e) {
+                LOG.error(e);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Convert millisecond times from hadoop's timer to guava's nanosecond ticker.
+     */
+    private static class TimerToTickerAdapter extends Ticker {
+        private Timer timer;
+
+        public TimerToTickerAdapter(Timer timer) {
+            this.timer = timer;
+        }
+
+        @Override
+        public long read() {
+            final long NANOSECONDS_PER_MS = 1000000;
+            return timer.monotonicNow() * NANOSECONDS_PER_MS;
+        }
+    }
+
+    public Set<String> getFromCache(String ip) {
+        Set<String> result = null;
+        String key = "ip_" + StringUtils.trimToEmpty(ip);
+        try {
+            result = cache.get(key);
+        } catch (ExecutionException ex) {
+            LOG.error(ex);
+            result =  getKeyFromRedis(key);
+        }
+        return result;
+    }
+
+    public boolean contain(String ip, String username) {
+        boolean flag = false;
+        try {
+            if (ip == null || StringUtils.trimToEmpty(ip).equals("")) return true;
+
+            Set<String> result = getFromCache(ip);
+            if (result == null || result.size() == 0) {
+                LOG.info("Authorize fail ,do not contain ip, ip=" + ip + "----");
+                flag = false;
+            } else {
+                if (result.contains("*") || StringUtils.startsWith(username, "appattempt")
+                    || result.contains(username)) {
+                    flag = true;
+                } else {
+                    LOG.info("Authorize fail ,do not contain username ---------------1----username="
+                            + username + " from ip=" + ip + "----");
+                    flag = false;
+                }
+            }
+        } catch (Exception e) {
+            LOG.error(e);
         }
         return flag;
     }
 
-    class TimeLoader extends Thread {
-        private String filePath = null;
-
-        private String fileMd5Str = "";
-
-        public TimeLoader() {
-        }
-
-        public TimeLoader(String filePath) {
-            this.filePath = filePath;
-            loadFile(this.filePath);
-            print();
-        }
-
-        @Override
-        public void run() {
-            while (true) {
-                loadFile(this.filePath);
-                try {
-                    Thread.sleep(3000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                    Thread.interrupted();
-                }
-            }
-        }
-
-        public String getMd5(File file) {
-            FileInputStream fis = null;
-            String flag = null;
+    public void close() {
+        if (pool != null) {
+            LOG.info("Destroy redis pool");
             try {
-                fis = new FileInputStream(file);
-                flag = DigestUtils.md5Hex(fis);
-            } catch (Exception e) {
-                flag = null;
-                LOG.error(e.getMessage());
+                pool.destroy();
+            } catch (Exception ex) {
+                LOG.error(ex);
             } finally {
-                if (fis != null) {
-                    try {
-                        fis.close();
-                    } catch (IOException e) {
-                        LOG.error(e.getMessage());
-                    } finally {
-                        fis = null;
-                    }
-                }
-            }
-            return flag;
-        }
-
-        /**
-         * load ip.txt
-         *
-         * @param filePath
-         */
-        public void loadFile(String filePath) {
-            File file = new File(filePath);
-            String tempStr = null;
-            if (file != null && file.exists()) {
-                tempStr = getMd5(file);
-                if (tempStr == null) {
-                    return;
-                } else {
-                    if (StringUtils.isEmpty(fileMd5Str)) {
-                        fileMd5Str = tempStr;
-                        LOG.info(">>>>>>>>>first md5=" + fileMd5Str);
-                    } else {
-                        if (tempStr.equals(fileMd5Str)) {
-                            return;
-                        } else {
-                            fileMd5Str = tempStr;
-                            LOG.info(">>>>>>>>>update md5=" + fileMd5Str);
-                        }
-                    }
-                }
-
-                FileReader fr = null;
-                BufferedReader br = null;
-                String tempLine = null;
-                String[] arr = null;
-                try {
-                    fr = new FileReader(file);
-                    br = new BufferedReader(fr);
-                    try {
-                        lock.lock();
-                        ipUserMap.clear();
-                        ipHashSet.clear();
-                        while ((tempLine = br.readLine()) != null) {
-                            arr = tempLine.split(SPLITSTR, 4);
-                            if (arr != null && arr.length == 4) {
-                                ipUserMap.put(arr[1].trim(), arr[2].trim());
-                                if ("1".equals(arr[3].trim())) {
-                                    ipHashSet.add(arr[1].trim());
-                                }
-                            } else {
-                                LOG.error(">>>ip.txt contain error msg .");
-                            }
-                        }
-                    } finally {
-                        LOG.info(new Date() + " load file end."
-                                + ipUserMap.size() + " |ipHashSet= " + ipHashSet.size());
-                        lock.unlock();
-                    }
-                } catch (Exception e) {
-                    LOG.error(e.getMessage());
-                } finally {
-                    try {
-                        if (br != null) {
-                            br.close();
-                        }
-                        if (fr != null) {
-                            fr.close();
-                        }
-                    } catch (Exception e) {
-                        LOG.error(e.getMessage());
-                    } finally {
-                        br = null;
-                        fr = null;
-                    }
-                }
-            } else {
-                try {
-                    lock.lock();
-                    ipUserMap.clear();
-                    ipHashSet.clear();
-                    LOG.info("ip.txt does not exist ...path=" + filePath);
-                } finally {
-                    lock.unlock();
-                }
+                pool = null;
             }
         }
     }
