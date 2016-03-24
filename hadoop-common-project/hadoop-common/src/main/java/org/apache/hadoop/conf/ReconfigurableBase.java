@@ -47,7 +47,7 @@ public abstract class ReconfigurableBase
   private ReconfigurationUtil reconfigurationUtil = new ReconfigurationUtil();
 
   /** Background thread to reload configuration. */
-  private Thread reconfigThread = null;
+  private ReconfigurationThread reconfigThread = null;
   private volatile boolean shouldRun = true;
   private Object reconfigLock = new Object();
 
@@ -99,7 +99,7 @@ public abstract class ReconfigurableBase
    */
   private static class ReconfigurationThread extends Thread {
     private ReconfigurableBase parent;
-    private boolean runOnce;
+    public boolean runOnce;
 
     ReconfigurationThread(ReconfigurableBase base, boolean runOnce) {
       this.parent = base;
@@ -201,6 +201,7 @@ public abstract class ReconfigurableBase
       if (reconfigThread == null) {
         return;
       }
+      reconfigThread.runOnce = true;
       tempThread = reconfigThread;
       reconfigThread = null;
     }
