@@ -816,11 +816,6 @@ public class RPC {
 
     public void setWhiteList(WhiteList whiteList) {
       this.whiteList = whiteList;
-      this.useWhiteList.getAndSet(whiteList != null);
-    }
-
-    public void refreshWhiteList(Configuration conf) {
-      this.whiteList
     }
    
    /**

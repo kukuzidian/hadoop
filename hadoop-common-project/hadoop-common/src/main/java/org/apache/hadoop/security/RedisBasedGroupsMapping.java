@@ -43,7 +43,7 @@ import redis.clients.jedis.JedisPoolConfig;
 @InterfaceStability.Evolving
 public class RedisBasedGroupsMapping implements GroupMappingServiceProvider, Configurable {
     private static final Log LOG = LogFactory.getLog(RedisBasedGroupsMapping.class);
-    public static volatile String REDIS_IP = "";
+    public static volatile String REDIS_IP = null;
     private Configuration conf;
     private static volatile JedisPool pool = null;
     private static ReentrantReadWriteLock lock = new ReentrantReadWriteLock();

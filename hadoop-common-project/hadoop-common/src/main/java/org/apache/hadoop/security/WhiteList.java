@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.google.common.base.Ticker;
@@ -49,9 +50,10 @@ public class WhiteList {
     private LoadingCache<String, Set<String>> cache;
     private Timer timer;
     private long cacheTimeout;
-    public static volatile String REDIS_IP = "";
+    public static volatile String REDIS_IP = null;
     private static volatile JedisPool pool = null;
     private static WhiteList globalWhiteList = null;
+    private AtomicBoolean isEnabled = new AtomicBoolean(false);
 
     public WhiteList(Configuration conf) {
         this.conf = conf;
@@ -66,6 +68,10 @@ public class WhiteList {
                 .build(new IpCacheLoader());
         initRedisPool();
         LOG.info(">>>>>>>>>>>>>>>>>>>>>>>WhiteList start...");
+    }
+
+    public boolean isEnabled() {
+        return isEnabled.get();
     }
 
     /**
@@ -118,6 +124,7 @@ public class WhiteList {
                     lock.writeLock().lock();
                     pool = new JedisPool(config, REDIS_IP, 6379, 0);
                 }
+                isEnabled.getAndSet(true);
             } catch(Exception ex) {
                 LOG.error(ex);
             } finally {
@@ -238,6 +245,7 @@ public class WhiteList {
     public void close() {
         if (pool != null) {
             LOG.info("Destroy redis pool");
+            isEnabled.getAndSet(false);
             try {
                 pool.destroy();
             } catch (Exception ex) {

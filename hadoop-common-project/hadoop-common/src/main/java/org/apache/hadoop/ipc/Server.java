@@ -363,7 +363,6 @@ public abstract class Server {
   private SecretManager<TokenIdentifier> secretManager;
   private SaslPropertiesResolver saslPropsResolver;
   private ServiceAuthorizationManager serviceAuthorizationManager = new ServiceAuthorizationManager();
-  public AtomicBoolean useWhiteList = new AtomicBoolean(false);
   public volatile WhiteList whiteList = null;
 
   private int maxQueueSize;
@@ -1977,7 +1976,7 @@ public abstract class Server {
      */
     private void authorizeConnection() throws WrappedRpcServerException {
       try {
-        if (useWhiteList.get()) {
+        if (whiteList.isEnabled()) {
           whileListAuthorize(user, getHostInetAddress().getHostAddress());
         }
         // If auth method is TOKEN, the token was obtained by the

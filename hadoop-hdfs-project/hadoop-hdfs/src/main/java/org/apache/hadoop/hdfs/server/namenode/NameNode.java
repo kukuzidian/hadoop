@@ -830,7 +830,7 @@ public class NameNode extends ReconfigurableBase implements NameNodeStatusMXBean
     state = createHAState(getStartupOption(conf));
     this.allowStaleStandbyReads = HAUtil.shouldAllowStandbyReads(conf);
     this.haContext = createHAContext();
-    this.whiteList = new WhiteList(conf);
+    this.whiteList = WhiteList.getWhiteList(conf);
     try {
       initializeGenericKeys(conf, nsId, namenodeId);
       initialize(conf);
