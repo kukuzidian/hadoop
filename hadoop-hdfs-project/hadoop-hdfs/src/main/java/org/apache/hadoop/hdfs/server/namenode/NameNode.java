@@ -819,7 +819,7 @@ public class NameNode extends ReconfigurableBase implements NameNodeStatusMXBean
     this(conf, NamenodeRole.NAMENODE);
   }
 
-  protected NameNode(Configuration conf, NamenodeRole role) 
+  protected NameNode(Configuration conf, NamenodeRole role)
       throws IOException {
     super(conf);
     this.role = role;
@@ -849,7 +849,7 @@ public class NameNode extends ReconfigurableBase implements NameNodeStatusMXBean
       throw e;
     }
     this.started.set(true);
-    startReconfigurationTask();
+    startReconfigurationTask(false);
   }
 
   protected HAState createHAState(StartupOption startOpt) {

@@ -99,45 +99,59 @@ public abstract class ReconfigurableBase
    */
   private static class ReconfigurationThread extends Thread {
     private ReconfigurableBase parent;
+    private boolean runOnce;
 
-    ReconfigurationThread(ReconfigurableBase base) {
+    ReconfigurationThread(ReconfigurableBase base, boolean runOnce) {
       this.parent = base;
+      this.runOnce = runOnce;
     }
 
     // See {@link ReconfigurationServlet#applyChanges}
     public void run() {
-      LOG.info("Starting reconfiguration task.");
-      Configuration oldConf = this.parent.getConf();
-      Configuration newConf = new Configuration();
-      Collection<PropertyChange> changes =
-          this.parent.getChangedProperties(newConf, oldConf);
-      Map<PropertyChange, Optional<String>> results = Maps.newHashMap();
-      for (PropertyChange change : changes) {
-        String errorMessage = null;
-        if (!this.parent.isPropertyReconfigurable(change.prop)) {
-          errorMessage = "Property " + change.prop +
-              " is not reconfigurable";
-          LOG.info(errorMessage);
-          results.put(change, Optional.of(errorMessage));
-          continue;
+      do {
+        LOG.info("Starting reconfiguration task.");
+        Configuration oldConf = this.parent.getConf();
+        Configuration newConf = new Configuration();
+        Collection<PropertyChange> changes =
+                this.parent.getChangedProperties(newConf, oldConf);
+        Map<PropertyChange, Optional<String>> results = Maps.newHashMap();
+        for (PropertyChange change : changes) {
+          String errorMessage = null;
+          if (!this.parent.isPropertyReconfigurable(change.prop)) {
+            errorMessage = "Property " + change.prop +
+                    " is not reconfigurable";
+            LOG.info(errorMessage);
+            results.put(change, Optional.of(errorMessage));
+            continue;
+          }
+          LOG.info("Change property: " + change.prop + " from \""
+                  + ((change.oldVal == null) ? "<default>" : change.oldVal)
+                  + "\" to \"" + ((change.newVal == null) ? "<default>" : change.newVal)
+                  + "\".");
+          try {
+            this.parent.reconfigurePropertyImpl(change.prop, change.newVal);
+          } catch (ReconfigurationException e) {
+            errorMessage = e.getCause().getMessage();
+          }
+          results.put(change, Optional.fromNullable(errorMessage));
         }
-        LOG.info("Change property: " + change.prop + " from \""
-            + ((change.oldVal == null) ? "<default>" : change.oldVal)
-            + "\" to \"" + ((change.newVal == null) ? "<default>" : change.newVal)
-            + "\".");
-        try {
-          this.parent.reconfigurePropertyImpl(change.prop, change.newVal);
-        } catch (ReconfigurationException e) {
-          errorMessage = e.getCause().getMessage();
-        }
-        results.put(change, Optional.fromNullable(errorMessage));
-      }
 
-      synchronized (this.parent.reconfigLock) {
-        this.parent.endTime = Time.now();
-        this.parent.status = Collections.unmodifiableMap(results);
-        this.parent.reconfigThread = null;
-      }
+        synchronized (this.parent.reconfigLock) {
+          this.parent.endTime = Time.now();
+          this.parent.status = Collections.unmodifiableMap(results);
+          if (!runOnce) {
+            this.parent.reconfigThread = null;
+          }
+        }
+
+        if (!runOnce) {
+          try {
+            Thread.sleep(60000);
+          } catch(Exception ex) {
+            LOG.error(ex);
+          }
+        }
+      } while (!runOnce);
     }
   }
 
@@ -145,6 +159,13 @@ public abstract class ReconfigurableBase
    * Start a reconfiguration task to reload configuration in background.
    */
   public void startReconfigurationTask() throws IOException {
+    startReconfigurationTask(true);
+  }
+
+  /**
+   * Start a reconfiguration task to reload configuration in background.
+   */
+  public void startReconfigurationTask(boolean runOnce) throws IOException {
     synchronized (reconfigLock) {
       if (!shouldRun) {
         String errorMessage = "The server is stopped.";
@@ -156,7 +177,7 @@ public abstract class ReconfigurableBase
         LOG.warn(errorMessage);
         throw new IOException(errorMessage);
       }
-      reconfigThread = new ReconfigurationThread(this);
+      reconfigThread = new ReconfigurationThread(this, runOnce);
       reconfigThread.setDaemon(true);
       reconfigThread.setName("Reconfiguration Task");
       reconfigThread.start();
