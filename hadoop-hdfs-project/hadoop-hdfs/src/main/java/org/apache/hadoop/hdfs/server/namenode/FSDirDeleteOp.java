@@ -270,21 +270,14 @@ class FSDirDeleteOp {
    * @throws AccessControlException if a non-empty protected descendant
    *                                was found.
    */
-  private static void checkProtectedDescendants(FSDirectory fsd, String src)
+  public static void checkProtectedDescendants(FSDirectory fsd, String src)
           throws AccessControlException, UnresolvedLinkException {
     final SortedSet<String> protectedDirs = fsd.getProtectedDirectories();
 
     // Is src protected? Caller has already checked it is non-empty.
     if (protectedDirs.contains(src)) {
       throw new AccessControlException(
-              "Cannot delete non-empty protected directory " + src);
-    } else {
-      String dirs = "";
-      for (String dir : protectedDirs) {
-        dirs += "," +dir;
-      }
-      NameNode.stateChangeLog.info("protect dir are" + dirs
-              + ", want to delete dir:" + src);
+              "Cannot delete or rename non-empty protected directory " + src);
     }
 
     // Are any descendants of src protected?
@@ -296,7 +289,7 @@ class FSDirDeleteOp {
       if (fsd.isNonEmptyDirectory(fsd.getINodesInPath4Write(
               descendant, false))) {
         throw new AccessControlException(
-                "Cannot delete non-empty protected subdirectory " + descendant);
+                "Cannot delete or rename non-empty protected subdirectory " + descendant);
       }
     }
   }

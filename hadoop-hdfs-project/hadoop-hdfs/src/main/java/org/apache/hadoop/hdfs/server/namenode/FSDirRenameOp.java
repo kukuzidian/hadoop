@@ -271,6 +271,9 @@ class FSDirRenameOp {
       fsd.checkPermission(pc, dstIIP, false, FsAction.WRITE, null, null, null,
           false);
     }
+    if (fsd.isNonEmptyDirectory(srcIIP)) {
+      FSDirDeleteOp.checkProtectedDescendants(fsd, fsd.normalizePath(src));
+    }
 
     if (NameNode.stateChangeLog.isDebugEnabled()) {
       NameNode.stateChangeLog.debug("DIR* FSDirectory.renameTo: " + src + " to "

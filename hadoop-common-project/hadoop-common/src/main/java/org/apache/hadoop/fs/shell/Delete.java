@@ -121,7 +121,7 @@ class Delete {
           String msg = ioe.getMessage();
           if (ioe.getCause() != null) {
             msg += ": " + ioe.getCause().getMessage();
-	  }
+	      }
           throw new IOException(msg + ". Consider using -skipTrash option", ioe);
         }
       }
