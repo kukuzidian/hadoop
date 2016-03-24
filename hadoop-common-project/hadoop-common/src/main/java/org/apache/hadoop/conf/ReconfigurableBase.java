@@ -109,47 +109,51 @@ public abstract class ReconfigurableBase
     // See {@link ReconfigurationServlet#applyChanges}
     public void run() {
       do {
-        LOG.info("Starting reconfiguration task.");
-        Configuration oldConf = this.parent.getConf();
-        Configuration newConf = new Configuration();
-        Collection<PropertyChange> changes =
-                this.parent.getChangedProperties(newConf, oldConf);
-        Map<PropertyChange, Optional<String>> results = Maps.newHashMap();
-        for (PropertyChange change : changes) {
-          String errorMessage = null;
-          if (!this.parent.isPropertyReconfigurable(change.prop)) {
-            errorMessage = "Property " + change.prop +
-                    " is not reconfigurable";
-            LOG.info(errorMessage);
-            results.put(change, Optional.of(errorMessage));
-            continue;
+        try {
+          LOG.info("Starting reconfiguration task.");
+          Configuration oldConf = this.parent.getConf();
+          Configuration newConf = new Configuration();
+          Collection<PropertyChange> changes =
+                  this.parent.getChangedProperties(newConf, oldConf);
+          Map<PropertyChange, Optional<String>> results = Maps.newHashMap();
+          for (PropertyChange change : changes) {
+            String errorMessage = null;
+            if (!this.parent.isPropertyReconfigurable(change.prop)) {
+              errorMessage = "Property " + change.prop +
+                      " is not reconfigurable";
+              LOG.info(errorMessage);
+              results.put(change, Optional.of(errorMessage));
+              continue;
+            }
+            LOG.info("Change property: " + change.prop + " from \""
+                    + ((change.oldVal == null) ? "<default>" : change.oldVal)
+                    + "\" to \"" + ((change.newVal == null) ? "<default>" : change.newVal)
+                    + "\".");
+            try {
+              this.parent.reconfigurePropertyImpl(change.prop, change.newVal);
+            } catch (ReconfigurationException e) {
+              errorMessage = e.getCause().getMessage();
+            }
+            results.put(change, Optional.fromNullable(errorMessage));
           }
-          LOG.info("Change property: " + change.prop + " from \""
-                  + ((change.oldVal == null) ? "<default>" : change.oldVal)
-                  + "\" to \"" + ((change.newVal == null) ? "<default>" : change.newVal)
-                  + "\".");
-          try {
-            this.parent.reconfigurePropertyImpl(change.prop, change.newVal);
-          } catch (ReconfigurationException e) {
-            errorMessage = e.getCause().getMessage();
-          }
-          results.put(change, Optional.fromNullable(errorMessage));
-        }
 
-        synchronized (this.parent.reconfigLock) {
-          this.parent.endTime = Time.now();
-          this.parent.status = Collections.unmodifiableMap(results);
+          synchronized (this.parent.reconfigLock) {
+            this.parent.endTime = Time.now();
+            this.parent.status = Collections.unmodifiableMap(results);
+            if (!runOnce) {
+              this.parent.reconfigThread = null;
+            }
+          }
+
           if (!runOnce) {
-            this.parent.reconfigThread = null;
+            try {
+              Thread.sleep(30000);
+            } catch (Exception ex) {
+              LOG.error(ex);
+            }
           }
-        }
-
-        if (!runOnce) {
-          try {
-            Thread.sleep(60000);
-          } catch(Exception ex) {
-            LOG.error(ex);
-          }
+        } catch(Exception ex) {
+          LOG.error(ex);
         }
       } while (!runOnce);
     }
