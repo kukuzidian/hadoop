@@ -24,6 +24,7 @@ import org.apache.hadoop.fs.permission.FsAction;
 import org.apache.hadoop.hdfs.server.namenode.INode.BlocksMapUpdateInfo;
 import org.apache.hadoop.security.AccessControlException;
 import org.apache.hadoop.util.ChunkedArrayList;
+import sun.reflect.generics.reflectiveObjects.LazyReflectiveObjectGenerator;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -277,6 +278,13 @@ class FSDirDeleteOp {
     if (protectedDirs.contains(src)) {
       throw new AccessControlException(
               "Cannot delete non-empty protected directory " + src);
+    } else {
+      String dirs = "";
+      for (String dir : protectedDirs) {
+        dirs += "," +dir;
+      }
+      NameNode.stateChangeLog.info("protect dir are" + dirs
+              + ", want to delete dir:" + src);
     }
 
     // Are any descendants of src protected?

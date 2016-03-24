@@ -181,7 +181,7 @@ public class NameNode extends ReconfigurableBase implements NameNodeStatusMXBean
   @Override
   protected void reconfigurePropertyImpl(String property, String newVal)
       throws ReconfigurationException {
-    if (newVal != null) {
+      if (newVal == null) newVal = "";
       conf.set(property, newVal);
       switch (property) {
         case FS_PROTECTED_DIRECTORIES:
@@ -194,7 +194,6 @@ public class NameNode extends ReconfigurableBase implements NameNodeStatusMXBean
         default:
           break;
       }
-    }
   }
 
   /**
