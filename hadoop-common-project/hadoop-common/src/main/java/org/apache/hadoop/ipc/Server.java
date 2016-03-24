@@ -1976,7 +1976,7 @@ public abstract class Server {
      */
     private void authorizeConnection() throws WrappedRpcServerException {
       try {
-        if (whiteList.isEnabled()) {
+        if (whiteList != null && whiteList.isEnabled()) {
           whileListAuthorize(user, getHostInetAddress().getHostAddress());
         }
         // If auth method is TOKEN, the token was obtained by the
