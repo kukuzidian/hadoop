@@ -121,8 +121,6 @@ public abstract class ReconfigurableBase
             if (!this.parent.isPropertyReconfigurable(change.prop)) {
               errorMessage = "Property " + change.prop +
                       " is not reconfigurable";
-              LOG.info(errorMessage);
-              results.put(change, Optional.of(errorMessage));
               continue;
             }
             LOG.info("Change property: " + change.prop + " from \""
