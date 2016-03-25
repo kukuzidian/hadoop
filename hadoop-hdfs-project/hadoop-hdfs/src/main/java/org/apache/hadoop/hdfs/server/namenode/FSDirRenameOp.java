@@ -271,6 +271,7 @@ class FSDirRenameOp {
       fsd.checkPermission(pc, dstIIP, false, FsAction.WRITE, null, null, null,
           false);
     }
+
     if (fsd.isNonEmptyDirectory(srcIIP)) {
       FSDirDeleteOp.checkProtectedDescendants(fsd, fsd.normalizePath(src));
     }
@@ -466,6 +467,10 @@ class FSDirRenameOp {
           null, false);
     }
 
+    if (fsd.isNonEmptyDirectory(srcIIP)) {
+      FSDirDeleteOp.checkProtectedDescendants(fsd, fsd.normalizePath(src));
+    }
+
     if (NameNode.stateChangeLog.isDebugEnabled()) {
       NameNode.stateChangeLog.debug("DIR* FSDirectory.renameTo: " + src + " to "
           + dst);
@@ -551,6 +556,7 @@ class FSDirRenameOp {
           + error);
       throw new IOException(error);
     }
+
     // srcInode and its subtree cannot contain snapshottable directories with
     // snapshots
     FSDirSnapshotOp.checkSnapshot(srcInode, null);
