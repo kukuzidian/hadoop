@@ -1042,10 +1042,8 @@ public class ResourceLocalizationService extends CompositeService
       List<ResourceLocalizationSpec> rsrcs =
           new ArrayList<ResourceLocalizationSpec>();
 
-      /*
-       * TODO : It doesn't support multiple downloads per ContainerLocalizer
-       * at the same time. We need to think whether we should support this.
-       */
+      // Return one resource per heartbeat.
+      // ContainerLocalizer can run multiple heartbeats to get multiple resources
       LocalResource next = findNextResource();
       if (next != null) {
         try {

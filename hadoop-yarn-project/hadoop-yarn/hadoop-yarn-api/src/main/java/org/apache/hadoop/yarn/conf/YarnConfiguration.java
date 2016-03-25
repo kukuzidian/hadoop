@@ -708,6 +708,11 @@ public class YarnConfiguration extends Configuration {
     NM_PREFIX + "localizer.cache.cleanup.interval-ms";
   public static final long DEFAULT_NM_LOCALIZER_CACHE_CLEANUP_INTERVAL_MS = 
     10 * 60 * 1000;
+
+  /** Number of threads to use for private localization fetching.*/
+  public static final String NM_PRIVATE_LOCALIZER_FETCH_THREAD_COUNT =
+    NM_PREFIX + "localizer.private.fetch.thread-count";
+  public static final int DEFAULT_NM_PRIVATE_LOCALIZER_FETCH_THREAD_COUNT = 4;
   
   /**
    * Target size of localizer cache in MB, per nodemanager. It is a target
