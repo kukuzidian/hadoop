@@ -86,6 +86,7 @@ import static org.apache.hadoop.fs.CommonConfigurationKeysPublic.FS_DEFAULT_NAME
 import static org.apache.hadoop.fs.CommonConfigurationKeysPublic.FS_TRASH_INTERVAL_DEFAULT;
 import static org.apache.hadoop.fs.CommonConfigurationKeysPublic.FS_TRASH_INTERVAL_KEY;
 import static org.apache.hadoop.fs.CommonConfigurationKeysPublic.HADOOP_SECURITY_GROUPS_MAPPING_REDIS_IP;
+import static org.apache.hadoop.fs.CommonConfigurationKeysPublic.HADOOP_SECURITY_USE_WHITELIST;
 import static org.apache.hadoop.hdfs.DFSConfigKeys.FS_PROTECTED_DIRECTORIES;
 import static org.apache.hadoop.hdfs.DFSConfigKeys.DFS_HA_AUTO_FAILOVER_ENABLED_DEFAULT;
 import static org.apache.hadoop.hdfs.DFSConfigKeys.DFS_HA_AUTO_FAILOVER_ENABLED_KEY;
@@ -171,7 +172,8 @@ public class NameNode extends ReconfigurableBase implements NameNodeStatusMXBean
   static final List<String> RECONFIGURABLE_PROPERTIES =
       Collections.unmodifiableList(Arrays.asList(
         FS_PROTECTED_DIRECTORIES,
-        HADOOP_SECURITY_GROUPS_MAPPING_REDIS_IP));
+        HADOOP_SECURITY_GROUPS_MAPPING_REDIS_IP,
+        HADOOP_SECURITY_USE_WHITELIST));
 
   @Override
   public Collection<String> getReconfigurableProperties() {
@@ -191,6 +193,8 @@ public class NameNode extends ReconfigurableBase implements NameNodeStatusMXBean
           Groups.refreshGroupsMappingServiceConf(conf);
           rpcServer.refreshWhiteList(conf);
           break;
+        case HADOOP_SECURITY_USE_WHITELIST:
+          rpcServer.refreshWhiteList(conf);
         default:
           break;
       }

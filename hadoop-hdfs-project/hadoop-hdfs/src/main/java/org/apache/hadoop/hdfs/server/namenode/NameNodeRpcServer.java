@@ -462,7 +462,7 @@ class NameNodeRpcServer implements NamenodeProtocols {
   }
 
   public void refreshWhiteList(Configuration conf) {
-      whiteList.refreshRedisPool(conf);
+      whiteList.refresh(conf);
   }
   
   InetSocketAddress getServiceRpcAddress() {

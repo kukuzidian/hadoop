@@ -41,6 +41,7 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
 import static org.apache.hadoop.fs.CommonConfigurationKeysPublic.HADOOP_SECURITY_GROUPS_MAPPING_REDIS_IP;
+import static org.apache.hadoop.fs.CommonConfigurationKeysPublic.HADOOP_SECURITY_USE_WHITELIST;
 
 public class WhiteList {
 
@@ -89,14 +90,15 @@ public class WhiteList {
         return globalWhiteList;
     }
 
-    public void refreshRedisPool(Configuration conf) {
+    public void refresh(Configuration conf) {
         this.conf = conf;
         initRedisPool();
     }
 
     public void initRedisPool() {
         String redisIp = conf.get(HADOOP_SECURITY_GROUPS_MAPPING_REDIS_IP);
-        if (redisIp == null || redisIp.equals("")) {
+        boolean enableWhiteList = conf.getBoolean(HADOOP_SECURITY_USE_WHITELIST, false);
+        if (!enableWhiteList || redisIp == null || redisIp.equals("")) {
             close();
             return;
         }
@@ -243,15 +245,16 @@ public class WhiteList {
     }
 
     public void close() {
+        isEnabled.getAndSet(false);
         if (pool != null) {
             LOG.info("Destroy redis pool");
-            isEnabled.getAndSet(false);
             try {
                 pool.destroy();
             } catch (Exception ex) {
                 LOG.error(ex);
             } finally {
                 pool = null;
+                REDIS_IP = null;
             }
         }
     }

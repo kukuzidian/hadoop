@@ -59,8 +59,6 @@ import org.apache.hadoop.util.Time;
 
 import com.google.protobuf.BlockingService;
 
-import static org.apache.hadoop.fs.CommonConfigurationKeysPublic.HADOOP_SECURITY_USE_WHITELIST;
-
 /** A simple RPC mechanism.
  *
  * A <i>protocol</i> is a Java interface.  All parameters and return types must
@@ -812,10 +810,6 @@ public class RPC {
         return className;
       }
       return names[names.length-1];
-    }
-
-    public void setWhiteList(WhiteList whiteList) {
-      this.whiteList = whiteList;
     }
    
    /**
