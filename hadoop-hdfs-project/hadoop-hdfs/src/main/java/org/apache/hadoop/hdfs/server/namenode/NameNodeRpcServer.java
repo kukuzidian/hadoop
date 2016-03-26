@@ -459,6 +459,9 @@ class NameNodeRpcServer implements NamenodeProtocols {
     if (serviceRpcServer != null) {
       serviceRpcServer.stop();
     }
+    if (whiteList != null) {
+      whiteList.close();
+    }
   }
 
   public void refreshWhiteList(Configuration conf) {

@@ -29,6 +29,8 @@ import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import static org.apache.hadoop.fs.CommonConfigurationKeysPublic.HADOOP_SECURITY_GROUPS_MAPPING_REDIS_IP;
+
+import org.apache.hadoop.util.ShutdownHookManager;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
@@ -47,6 +49,16 @@ public class RedisBasedGroupsMapping implements GroupMappingServiceProvider, Con
     private Configuration conf;
     private static volatile JedisPool pool = null;
     private static ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+    private static final int SHUTDOWN_HOOK_PRIORITY = 0;
+
+    static {
+        ShutdownHookManager.get().addShutdownHook(new Runnable() {
+            @Override
+            public void run() {
+                close();
+            }
+        }, SHUTDOWN_HOOK_PRIORITY);
+    }
 
     /**
      * Returns list of groups for a user
@@ -91,6 +103,11 @@ public class RedisBasedGroupsMapping implements GroupMappingServiceProvider, Con
             lock.readLock().lock();
             jedis = pool.getResource();
             Set<String> set = jedis.smembers("u_" + user);
+            if (set != null) {
+                for (String g : set) {
+                    LOG.info("search group from redis: " + g);
+                }
+            }
             result = new ArrayList<>(set);
         } catch(Exception e) {
             LOG.error(e);
@@ -175,5 +192,19 @@ public class RedisBasedGroupsMapping implements GroupMappingServiceProvider, Con
     @Override
     public Configuration getConf() {
         return conf;
+    }
+
+    public static void close() {
+        if (pool != null) {
+            LOG.info("Destroy redis pool");
+            try {
+                pool.destroy();
+            } catch (Exception ex) {
+                LOG.error(ex);
+            } finally {
+                pool = null;
+                REDIS_IP = null;
+            }
+        }
     }
 }
