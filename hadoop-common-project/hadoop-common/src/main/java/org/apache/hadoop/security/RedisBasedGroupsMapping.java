@@ -135,6 +135,7 @@ public class RedisBasedGroupsMapping implements GroupMappingServiceProvider, Con
     }
 
     public void initRedisPool() {
+        boolean isSuccess = false;
         try {
             String redisIp = conf.get(HADOOP_SECURITY_GROUPS_MAPPING_REDIS_IP);
             int maxTotal = conf.getInt("hadoop.security.group.mapping.redis.maxTotal", 500);
@@ -143,14 +144,15 @@ public class RedisBasedGroupsMapping implements GroupMappingServiceProvider, Con
             config.setMinIdle(10);
             lock.writeLock().lock();
             if (pool == null) {
-                LOG.info("Init redis pool, ip=" + REDIS_IP);
                 REDIS_IP = redisIp;
                 pool = new JedisPool(config, REDIS_IP, 6379, 0);
+                isSuccess = true;
             }
         } catch (Exception ex) {
             LOG.error(ex);
         } finally {
             lock.writeLock().unlock();
+            if (isSuccess) LOG.info("Init redis pool, ip=" + REDIS_IP);
         }
     }
 
