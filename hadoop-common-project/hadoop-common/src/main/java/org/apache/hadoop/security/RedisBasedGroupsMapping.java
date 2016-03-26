@@ -46,7 +46,7 @@ import redis.clients.jedis.JedisPoolConfig;
 public class RedisBasedGroupsMapping implements GroupMappingServiceProvider, Configurable {
     private static final Log LOG = LogFactory.getLog(RedisBasedGroupsMapping.class);
     public static volatile String REDIS_IP = null;
-    private Configuration conf;
+    private volatile Configuration conf;
     private static volatile JedisPool pool = null;
     private static ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
     private static final int SHUTDOWN_HOOK_PRIORITY = 0;
@@ -96,10 +96,13 @@ public class RedisBasedGroupsMapping implements GroupMappingServiceProvider, Con
      * @return the groups list that the <code>user</code> belongs to
      * @throws IOException if encounter any error when running the command
      */
-    private static List<String> getGroupsFromRedis(final String user) throws IOException {
+    private List<String> getGroupsFromRedis(final String user) throws IOException {
         ArrayList<String> result =  new ArrayList<>();
         Jedis jedis = null;
         try {
+            if (pool == null) {
+                initRedisPool();
+            }
             lock.readLock().lock();
             jedis = pool.getResource();
             Set<String> set = jedis.smembers("u_" + user);
@@ -128,11 +131,34 @@ public class RedisBasedGroupsMapping implements GroupMappingServiceProvider, Con
 
     @Override
     public void setConf(Configuration conf) {
-        this.conf = conf;
-        initRedisPool();
+        if (this.conf == null) {
+            this.conf = conf;
+        } else {
+            this.conf = conf;
+            refreshRedisPool();
+        }
     }
 
     public void initRedisPool() {
+        try {
+            lock.writeLock().lock();
+            if (pool == null) {
+                int maxTotal = conf.getInt("hadoop.security.group.mapping.redis.maxTotal", 500);
+                String redisIp = conf.get(HADOOP_SECURITY_GROUPS_MAPPING_REDIS_IP);
+                REDIS_IP = redisIp;
+                JedisPoolConfig config = new JedisPoolConfig();
+                config.setMaxTotal(maxTotal);
+                config.setMinIdle(10);
+                pool = new JedisPool(config, REDIS_IP, 6379, 0);
+            }
+        } catch (Exception ex) {
+            LOG.error(ex);
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    public void refreshRedisPool() {
         String redisIp = conf.get(HADOOP_SECURITY_GROUPS_MAPPING_REDIS_IP);
         if (redisIp == null || redisIp.equals("")) {
             if (pool != null) {
