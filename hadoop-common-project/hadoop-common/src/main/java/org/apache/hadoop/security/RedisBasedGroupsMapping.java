@@ -97,7 +97,7 @@ public class RedisBasedGroupsMapping implements GroupMappingServiceProvider, Con
      * @throws IOException if encounter any error when running the command
      */
     private List<String> getGroupsFromRedis(final String user) throws IOException {
-        ArrayList<String> result =  new ArrayList<>();
+        ArrayList<String> result = new ArrayList<>();
         Jedis jedis = null;
         try {
             if (pool == null) {
@@ -106,11 +106,6 @@ public class RedisBasedGroupsMapping implements GroupMappingServiceProvider, Con
             lock.readLock().lock();
             jedis = pool.getResource();
             Set<String> set = jedis.smembers("u_" + user);
-            if (set != null) {
-                for (String g : set) {
-                    LOG.info("search group from redis: " + g);
-                }
-            }
             result = new ArrayList<>(set);
         } catch(Exception e) {
             LOG.error(e);
@@ -141,14 +136,15 @@ public class RedisBasedGroupsMapping implements GroupMappingServiceProvider, Con
 
     public void initRedisPool() {
         try {
+            String redisIp = conf.get(HADOOP_SECURITY_GROUPS_MAPPING_REDIS_IP);
+            int maxTotal = conf.getInt("hadoop.security.group.mapping.redis.maxTotal", 500);
+            JedisPoolConfig config = new JedisPoolConfig();
+            config.setMaxTotal(maxTotal);
+            config.setMinIdle(10);
             lock.writeLock().lock();
             if (pool == null) {
-                int maxTotal = conf.getInt("hadoop.security.group.mapping.redis.maxTotal", 500);
-                String redisIp = conf.get(HADOOP_SECURITY_GROUPS_MAPPING_REDIS_IP);
+                LOG.info("Init redis pool, ip=" + REDIS_IP);
                 REDIS_IP = redisIp;
-                JedisPoolConfig config = new JedisPoolConfig();
-                config.setMaxTotal(maxTotal);
-                config.setMinIdle(10);
                 pool = new JedisPool(config, REDIS_IP, 6379, 0);
             }
         } catch (Exception ex) {

@@ -17,20 +17,28 @@
  */
 package org.apache.hadoop.hdfs.server.namenode.ha;
 
-import com.google.common.annotations.VisibleForTesting;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hdfs.DFSConfigKeys;
-import org.apache.hadoop.io.retry.MultiException;
-
+import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletionService;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.ipc.RemoteException;
+import org.apache.hadoop.ipc.StandbyException;
+
+import com.google.common.annotations.VisibleForTesting;
+import org.apache.hadoop.io.retry.MultiException;
 
 /**
  * A FailoverProxyProvider implementation that technically does not "failover"
@@ -113,8 +121,7 @@ public class RequestHedgingProxyProvider<T> extends
             return retVal;
           } catch (Exception ex) {
             ProxyInfo<T> tProxyInfo = proxyMap.get(callResultFuture);
-            LOG.warn("Invocation returned exception on "
-                    + "[" + tProxyInfo.proxyInfo + "]");
+            logProxyException(ex, tProxyInfo.proxyInfo);
             badResults.put(tProxyInfo.proxyInfo, ex);
             numAttempts--;
           }
@@ -178,4 +185,39 @@ public class RequestHedgingProxyProvider<T> extends
     successfulProxy = null;
   }
 
+  /**
+   * Check the exception returned by the proxy log a warning message if it's
+   * not a StandbyException (expected exception).
+   * @param ex Exception to evaluate.
+   * @param proxyInfo Information of the proxy reporting the exception.
+   */
+  private void logProxyException(Exception ex, String proxyInfo) {
+    if (isStandbyException(ex)) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Invocation returned standby exception on [" +
+            proxyInfo + "]");
+      }
+    } else {
+      LOG.warn("Invocation returned exception on [" + proxyInfo + "]");
+    }
+  }
+
+  /**
+   * Check if the returned exception is caused by an standby namenode.
+   * @param ex Exception to check.
+   * @return If the exception is caused by an standby namenode.
+   */
+  private boolean isStandbyException(Exception ex) {
+    Throwable cause = ex.getCause();
+    if (cause != null) {
+      Throwable cause2 = cause.getCause();
+      if (cause2 instanceof RemoteException) {
+        RemoteException remoteException = (RemoteException)cause2;
+        IOException unwrapRemoteException =
+            remoteException.unwrapRemoteException();
+        return unwrapRemoteException instanceof StandbyException;
+      }
+    }
+    return false;
+  }
 }
