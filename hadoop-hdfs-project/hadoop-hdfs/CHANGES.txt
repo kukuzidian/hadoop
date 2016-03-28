@@ -146,6 +146,9 @@ Release 2.7.3 - UNRELEASED
     HDFS-9904. testCheckpointCancellationDuringUpload occasionally fails.
     (Lin Yiqun via kihwal)
 
+    HDFS-9874. Long living DataXceiver threads cause volume shutdown to block.
+    (Rushabh Shah via kihwal)
+
 Release 2.7.2 - 2016-01-25
 
   INCOMPATIBLE CHANGES
@@ -163,6 +166,9 @@ Release 2.7.2 - 2016-01-25
     values() since it creates a temporary array. (Staffan Friberg via yliu)
 
     HDFS-9574. Reduce client failures during datanode restart (kihwal)
+
+    HDFS-8101. DFSClient use of non-constant DFSConfigKeys pulls in WebHDFS
+    classes at runtime. (Sean Busbey via atm)
 
   OPTIMIZATIONS
 
