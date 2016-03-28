@@ -41,7 +41,7 @@ public class MultiException extends IOException {
   public String toString() {
     StringBuilder sb = new StringBuilder("{");
     for (Exception e : exes.values()) {
-      sb.append(e.toString()).append(", ");
+      sb.append(e.getCause().toString()).append(", ");
     }
     sb.append("}");
     return "MultiException[" + sb.toString() + "]";
