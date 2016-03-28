@@ -206,12 +206,9 @@ public class RequestHedgingProxyProvider<T> extends
             LOG.debug("Invocation returned standby exception on [" +
                     proxyInfo + "]");
           }
-        } else if (unwrapRemoteException instanceof AccessControlException) {
-          LOG.error(unwrapRemoteException);
         } else {
-          LOG.warn("Invocation returned exception on [" + proxyInfo + "]");
+          LOG.error(unwrapRemoteException);
         }
-
       }
     }
   }
