@@ -39,6 +39,8 @@ import org.apache.hadoop.ipc.StandbyException;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.hadoop.io.retry.MultiException;
+import org.apache.hadoop.security.AccessControlException;
+import org.apache.hadoop.security.authorize.AuthorizationException;
 
 /**
  * A FailoverProxyProvider implementation that technically does not "failover"
@@ -192,32 +194,26 @@ public class RequestHedgingProxyProvider<T> extends
    * @param proxyInfo Information of the proxy reporting the exception.
    */
   private void logProxyException(Exception ex, String proxyInfo) {
-    if (isStandbyException(ex)) {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Invocation returned standby exception on [" +
-            proxyInfo + "]");
-      }
-    } else {
-      LOG.warn("Invocation returned exception on [" + proxyInfo + "]");
-    }
-  }
-
-  /**
-   * Check if the returned exception is caused by an standby namenode.
-   * @param ex Exception to check.
-   * @return If the exception is caused by an standby namenode.
-   */
-  private boolean isStandbyException(Exception ex) {
     Throwable cause = ex.getCause();
     if (cause != null) {
       Throwable cause2 = cause.getCause();
       if (cause2 instanceof RemoteException) {
         RemoteException remoteException = (RemoteException)cause2;
         IOException unwrapRemoteException =
-            remoteException.unwrapRemoteException();
-        return unwrapRemoteException instanceof StandbyException;
+                remoteException.unwrapRemoteException();
+        if (unwrapRemoteException instanceof StandbyException) {
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("Invocation returned standby exception on [" +
+                    proxyInfo + "]");
+          }
+        } else if (unwrapRemoteException instanceof AccessControlException) {
+          LOG.error(unwrapRemoteException);
+        } else {
+          LOG.warn("Invocation returned exception on [" + proxyInfo + "]");
+        }
+
       }
     }
-    return false;
   }
+
 }
