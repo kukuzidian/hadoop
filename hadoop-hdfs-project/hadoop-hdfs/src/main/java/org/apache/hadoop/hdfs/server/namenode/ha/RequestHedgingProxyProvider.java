@@ -39,8 +39,6 @@ import org.apache.hadoop.ipc.StandbyException;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.hadoop.io.retry.MultiException;
-import org.apache.hadoop.security.AccessControlException;
-import org.apache.hadoop.security.authorize.AuthorizationException;
 
 /**
  * A FailoverProxyProvider implementation that technically does not "failover"
