@@ -16,7 +16,7 @@
 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>org.apache.hadoop</groupId>
+  <groupId>com.didichuxing.hadoop</groupId>
   <artifactId>hadoop-main</artifactId>
   <version>2.7.2</version>
   <description>Apache Hadoop Main</description>
@@ -285,7 +285,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xs
               <doclet>org.apache.hadoop.classification.tools.IncludePublicAnnotationsStandardDoclet</doclet>
               <docletArtifacts>
                 <docletArtifact>
-                  <groupId>org.apache.hadoop</groupId>
+                  <groupId>com.didichuxing.hadoop</groupId>
                   <artifactId>hadoop-annotations</artifactId>
                   <version>${project.version}</version>
                 </docletArtifact>
@@ -297,7 +297,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xs
     
               <dependencySourceIncludes>
                 <!-- include ONLY dependencies I control -->
-                <dependencySourceInclude>org.apache.hadoop:hadoop-annotations</dependencySourceInclude>
+                <dependencySourceInclude>com.didichuxing.hadoop:hadoop-annotations</dependencySourceInclude>
               </dependencySourceIncludes>
     
             </configuration>

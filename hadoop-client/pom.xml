@@ -16,12 +16,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.apache.hadoop</groupId>
+    <groupId>com.didichuxing.hadoop</groupId>
     <artifactId>hadoop-project-dist</artifactId>
     <version>2.7.2</version>
     <relativePath>../hadoop-project-dist</relativePath>
   </parent>
-  <groupId>org.apache.hadoop</groupId>
+  <groupId>com.didichuxing.hadoop</groupId>
   <artifactId>hadoop-client</artifactId>
   <version>2.7.2</version>
   <packaging>jar</packaging>
@@ -35,7 +35,7 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.apache.hadoop</groupId>
+      <groupId>com.didichuxing.hadoop</groupId>
       <artifactId>hadoop-common</artifactId>
       <scope>compile</scope>
       <exclusions>
@@ -99,7 +99,7 @@
     </dependency>
 
     <dependency>
-      <groupId>org.apache.hadoop</groupId>
+      <groupId>com.didichuxing.hadoop</groupId>
       <artifactId>hadoop-hdfs</artifactId>
       <scope>compile</scope>
       <exclusions>
@@ -131,7 +131,7 @@
     </dependency>
 
     <dependency>
-      <groupId>org.apache.hadoop</groupId>
+      <groupId>com.didichuxing.hadoop</groupId>
       <artifactId>hadoop-mapreduce-client-app</artifactId>
       <scope>compile</scope>
       <exclusions>
@@ -140,15 +140,15 @@
           <artifactId>servlet-api</artifactId>
         </exclusion>
         <exclusion>
-          <groupId>org.apache.hadoop</groupId>
+          <groupId>com.didichuxing.hadoop</groupId>
           <artifactId>hadoop-yarn-server-nodemanager</artifactId>
         </exclusion>
         <exclusion>
-          <groupId>org.apache.hadoop</groupId>
+          <groupId>com.didichuxing.hadoop</groupId>
           <artifactId>hadoop-yarn-server-web-proxy</artifactId>
         </exclusion>
         <exclusion>
-          <groupId>org.apache.hadoop</groupId>
+          <groupId>com.didichuxing.hadoop</groupId>
           <artifactId>hadoop-annotations</artifactId>
         </exclusion>
         <exclusion>
@@ -175,12 +175,12 @@
     </dependency>
 
     <dependency>
-      <groupId>org.apache.hadoop</groupId>
+      <groupId>com.didichuxing.hadoop</groupId>
       <artifactId>hadoop-yarn-api</artifactId>
       <scope>compile</scope>
       <exclusions>
         <exclusion>
-          <groupId>org.apache.hadoop</groupId>
+          <groupId>com.didichuxing.hadoop</groupId>
           <artifactId>hadoop-annotations</artifactId>
         </exclusion>
         <exclusion>
@@ -223,7 +223,7 @@
     </dependency>
 
     <dependency>
-      <groupId>org.apache.hadoop</groupId>
+      <groupId>com.didichuxing.hadoop</groupId>
       <artifactId>hadoop-mapreduce-client-core</artifactId>
       <scope>compile</scope>
       <exclusions>
@@ -252,7 +252,7 @@
           <artifactId>avro</artifactId>
         </exclusion>
         <exclusion>
-          <groupId>org.apache.hadoop</groupId>
+          <groupId>com.didichuxing.hadoop</groupId>
           <artifactId>hadoop-annotations</artifactId>
         </exclusion>
         <exclusion>
@@ -271,7 +271,7 @@
     </dependency>
 
     <dependency>
-      <groupId>org.apache.hadoop</groupId>
+      <groupId>com.didichuxing.hadoop</groupId>
       <artifactId>hadoop-mapreduce-client-jobclient</artifactId>
       <scope>compile</scope>
       <exclusions>
@@ -284,7 +284,7 @@
           <artifactId>avro</artifactId>
         </exclusion>
         <exclusion>
-          <groupId>org.apache.hadoop</groupId>
+          <groupId>com.didichuxing.hadoop</groupId>
           <artifactId>hadoop-annotations</artifactId>
         </exclusion>
         <exclusion>
@@ -299,7 +299,7 @@
     </dependency>
 
     <dependency>
-      <groupId>org.apache.hadoop</groupId>
+      <groupId>com.didichuxing.hadoop</groupId>
       <artifactId>hadoop-annotations</artifactId>
       <scope>compile</scope>
       <exclusions>
