@@ -22,7 +22,7 @@
     <artifactId>hadoop-main</artifactId>
     <version>2.7.2</version>
   </parent>
-  <groupId>com.didichuxing.hadoop</groupId>
+  <groupId>com.didichux.hadoop</groupId>
   <artifactId>hadoop-project</artifactId>
   <version>2.7.2</version>
   <description>Apache Hadoop Project POM</description>
@@ -100,7 +100,7 @@
 
     <maven-clean-plugin.version>2.5</maven-clean-plugin.version>
     <maven-compiler-plugin.version>3.1</maven-compiler-plugin.version>
-    <maven-install-plugin.version>2.5.1</maven-install-plugin.version>
+    <maven-install-plugin.version>2.4</maven-install-plugin.version>
     <maven-resources-plugin.version>2.6</maven-resources-plugin.version>
     <maven-jar-plugin.version>2.5</maven-jar-plugin.version>
     <maven-war-plugin.version>2.4</maven-war-plugin.version>
