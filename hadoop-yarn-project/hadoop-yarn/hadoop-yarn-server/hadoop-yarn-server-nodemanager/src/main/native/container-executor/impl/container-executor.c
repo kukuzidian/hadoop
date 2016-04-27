@@ -1448,21 +1448,31 @@ int mount_cgroup(const char *pair, const char *hierarchy) {
     result = -1; 
   } else {
     if (mount("none", mount_path, "cgroup", 0, controller) == 0) {
+      fprintf(LOGFILE, "Successful to mount cgroup controller %s at %s\n",
+              controller, mount_path);
+    } else {
+      fprintf(LOGFILE, "Failed to mount cgroup controller %s at %s - %s\n",
+                controller, mount_path, strerror(errno));
+      //if controller is already mounted, don't stop trying to mount others
+      //and ensure hierarchy existed
+      if (errno != EBUSY) {
+        result = -1;
+      }
+    }
+    
+    if (result ==0) {
       char *buf = stpncpy(hier_path, mount_path, strlen(mount_path));
       *buf++ = '/';
       snprintf(buf, PATH_MAX - (buf - hier_path), "%s", hierarchy);
 
       // create hierarchy as 0750 and chown to Hadoop NM user
       const mode_t perms = S_IRWXU | S_IRGRP | S_IXGRP;
-      if (mkdirs(hier_path, perms) == 0) {
+      if (mkdirs(hier_path, perms) == 0 || EEXIST == errno) {
         change_owner(hier_path, nm_uid, nm_gid);
         chown_dir_contents(hier_path, nm_uid, nm_gid);
-      }
-    } else {
-      fprintf(LOGFILE, "Failed to mount cgroup controller %s at %s - %s\n",
-                controller, mount_path, strerror(errno));
-      // if controller is already mounted, don't stop trying to mount others
-      if (errno != EBUSY) {
+      } else {
+        fprintf(LOGFILE, "Can't create hierarchy directory for %s at %s.errno:%d, info:%s\n",
+                  controller, hier_path, errno, strerror(errno));
         result = -1;
       }
     }
