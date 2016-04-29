@@ -18,12 +18,12 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>com.didichuxing.hadoop</groupId>
+    <groupId>org.apache.hadoop</groupId>
     <artifactId>hadoop-project-dist</artifactId>
     <version>2.7.2</version>
     <relativePath>../../hadoop-project-dist</relativePath>
   </parent>
-  <groupId>com.didichuxing.hadoop</groupId>
+  <groupId>org.apache.hadoop</groupId>
   <artifactId>hadoop-hdfs</artifactId>
   <version>2.7.2</version>
   <description>Apache Hadoop HDFS</description>
@@ -38,22 +38,22 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <dependencies>
     <dependency>
-      <groupId>com.didichuxing.hadoop</groupId>
+      <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-annotations</artifactId>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>com.didichuxing.hadoop</groupId>
+      <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-auth</artifactId>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>com.didichuxing.hadoop</groupId>
+      <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-common</artifactId>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>com.didichuxing.hadoop</groupId>
+      <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-common</artifactId>
       <scope>test</scope>
       <type>test-jar</type>
@@ -140,7 +140,7 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.didichuxing.hadoop</groupId>
+      <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-minikdc</artifactId>
       <scope>test</scope>
     </dependency>
@@ -189,14 +189,14 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
       <artifactId>htrace-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.didichuxing.hadoop</groupId>
+      <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-kms</artifactId>
       <classifier>classes</classifier>
       <type>jar</type>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.didichuxing.hadoop</groupId>
+      <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-kms</artifactId>
       <type>test-jar</type>
       <scope>test</scope>
@@ -311,7 +311,7 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
         </executions>
       </plugin>
       <plugin>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-maven-plugins</artifactId>
         <executions>
           <execution>

@@ -15,12 +15,12 @@
 <project>
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>com.didichuxing.hadoop</groupId>
+    <groupId>org.apache.hadoop</groupId>
     <artifactId>hadoop-project</artifactId>
     <version>2.7.2</version>
     <relativePath>../../hadoop-project</relativePath>
   </parent>
-  <groupId>com.didichuxing.hadoop</groupId>
+  <groupId>org.apache.hadoop</groupId>
   <artifactId>hadoop-pipes</artifactId>
   <version>2.7.2</version>
   <description>Apache Hadoop Pipes</description>

@@ -18,12 +18,12 @@
                       http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>com.didichuxing.hadoop</groupId>
+    <groupId>org.apache.hadoop</groupId>
     <artifactId>hadoop-project</artifactId>
     <version>2.7.2</version>
     <relativePath>../hadoop-project</relativePath>
   </parent>
-  <groupId>com.didichuxing.hadoop</groupId>
+  <groupId>org.apache.hadoop</groupId>
   <artifactId>hadoop-project-dist</artifactId>
   <version>2.7.2</version>
   <description>Apache Hadoop Project Dist POM</description>
@@ -47,7 +47,7 @@
   
   <dependencies>
     <dependency>
-      <groupId>com.didichuxing.hadoop</groupId>
+      <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-annotations</artifactId>
       <scope>provided</scope>
     </dependency>
@@ -138,7 +138,7 @@
           <doclet>org.apache.hadoop.classification.tools.ExcludePrivateAnnotationsStandardDoclet</doclet>
           <docletArtifacts>
             <docletArtifact>
-              <groupId>com.didichuxing.hadoop</groupId>
+              <groupId>org.apache.hadoop</groupId>
               <artifactId>hadoop-annotations</artifactId>
               <version>${project.version}</version>
             </docletArtifact>
@@ -222,7 +222,7 @@
                       <destFileName>jdiff.jar</destFileName>
                     </artifactItem>
                     <artifactItem>
-                      <groupId>com.didichuxing.hadoop</groupId>
+                      <groupId>org.apache.hadoop</groupId>
                       <artifactId>hadoop-annotations</artifactId>
                       <version>${project.version}</version>
                       <overWrite>false</overWrite>
@@ -420,7 +420,7 @@
             <artifactId>maven-assembly-plugin</artifactId>
             <dependencies>
               <dependency>
-                <groupId>com.didichuxing.hadoop</groupId>
+                <groupId>org.apache.hadoop</groupId>
                 <artifactId>hadoop-assemblies</artifactId>
                 <version>${project.version}</version>
               </dependency>

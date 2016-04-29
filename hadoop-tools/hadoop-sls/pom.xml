@@ -17,12 +17,12 @@
           xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>com.didichuxing.hadoop</groupId>
+    <groupId>org.apache.hadoop</groupId>
     <artifactId>hadoop-project</artifactId>
     <version>2.7.2</version>
     <relativePath>../../hadoop-project</relativePath>
   </parent>
-  <groupId>com.didichuxing.hadoop</groupId>
+  <groupId>org.apache.hadoop</groupId>
   <artifactId>hadoop-sls</artifactId>
   <version>2.7.2</version>
   <description>Apache Hadoop Scheduler Load Simulator</description>
@@ -36,17 +36,17 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.didichuxing.hadoop</groupId>
+      <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-client</artifactId>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>com.didichuxing.hadoop</groupId>
+      <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-minicluster</artifactId>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>com.didichuxing.hadoop</groupId>
+      <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-rumen</artifactId>
     </dependency>
     <dependency>
@@ -154,7 +154,7 @@
             <artifactId>maven-assembly-plugin</artifactId>
             <dependencies>
               <dependency>
-                <groupId>com.didichuxing.hadoop</groupId>
+                <groupId>org.apache.hadoop</groupId>
                 <artifactId>hadoop-assemblies</artifactId>
                 <version>${project.version}</version>
               </dependency>
