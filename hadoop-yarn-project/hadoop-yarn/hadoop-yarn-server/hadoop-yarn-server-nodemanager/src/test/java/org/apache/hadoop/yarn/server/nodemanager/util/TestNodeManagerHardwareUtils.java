@@ -38,7 +38,7 @@ public class TestNodeManagerHardwareUtils {
 
     conf.setInt(YarnConfiguration.NM_RESOURCE_PERCENTAGE_PHYSICAL_CPU_LIMIT, 0);
     try {
-      NodeManagerHardwareUtils.getContainersCores(plugin, conf);
+      NodeManagerHardwareUtils.getContainersCPUs(plugin, conf);
       Assert.fail("getContainerCores should have thrown exception");
     } catch (IllegalArgumentException ie) {
       // expected
@@ -46,27 +46,27 @@ public class TestNodeManagerHardwareUtils {
 
     conf.setInt(YarnConfiguration.NM_RESOURCE_PERCENTAGE_PHYSICAL_CPU_LIMIT,
       100);
-    ret = NodeManagerHardwareUtils.getContainersCores(plugin, conf);
+    ret = NodeManagerHardwareUtils.getContainersCPUs(plugin, conf);
     Assert.assertEquals(4, (int) ret);
 
     conf
       .setInt(YarnConfiguration.NM_RESOURCE_PERCENTAGE_PHYSICAL_CPU_LIMIT, 50);
-    ret = NodeManagerHardwareUtils.getContainersCores(plugin, conf);
+    ret = NodeManagerHardwareUtils.getContainersCPUs(plugin, conf);
     Assert.assertEquals(2, (int) ret);
 
     conf
       .setInt(YarnConfiguration.NM_RESOURCE_PERCENTAGE_PHYSICAL_CPU_LIMIT, 75);
-    ret = NodeManagerHardwareUtils.getContainersCores(plugin, conf);
+    ret = NodeManagerHardwareUtils.getContainersCPUs(plugin, conf);
     Assert.assertEquals(3, (int) ret);
 
     conf
       .setInt(YarnConfiguration.NM_RESOURCE_PERCENTAGE_PHYSICAL_CPU_LIMIT, 85);
-    ret = NodeManagerHardwareUtils.getContainersCores(plugin, conf);
+    ret = NodeManagerHardwareUtils.getContainersCPUs(plugin, conf);
     Assert.assertEquals(3.4, ret, 0.1);
 
     conf.setInt(YarnConfiguration.NM_RESOURCE_PERCENTAGE_PHYSICAL_CPU_LIMIT,
       110);
-    ret = NodeManagerHardwareUtils.getContainersCores(plugin, conf);
+    ret = NodeManagerHardwareUtils.getContainersCPUs(plugin, conf);
     Assert.assertEquals(4, (int) ret);
   }
 }
