@@ -165,7 +165,7 @@ public class WhiteList {
     }
 
     /**
-     * Queries impl for groups belonging to the user. This could involve I/O and take awhile.
+     * Queries impl for groups belonging to the user. This could involve I/O and take a while.
      */
     public static Set<String> getKeyFromRedis(String key) {
         Jedis jedis = null;
