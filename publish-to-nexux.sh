@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PUBLISH_PROFILES="-Pnative -DskipTests -Pdocs -Psrc"
+PUBLISH_PROFILES="-Pnative -DskipTests"
 
 echo "Publishing Hadoop to nexus"
 
