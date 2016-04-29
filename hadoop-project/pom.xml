@@ -18,13 +18,13 @@
                       http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>com.didichuxing.hadoop</groupId>
+    <groupId>org.apache.hadoop</groupId>
     <artifactId>hadoop-main</artifactId>
-    <version>2.7.2</version>
+    <version>2.7.2.didi</version>
   </parent>
-  <groupId>com.didichuxing.hadoop</groupId>
+  <groupId>org.apache.hadoop</groupId>
   <artifactId>hadoop-project</artifactId>
-  <version>2.7.2</version>
+  <version>2.7.2.didi</version>
   <description>Apache Hadoop Project POM</description>
   <name>Apache Hadoop Project POM</name>
   <packaging>pom</packaging>
@@ -122,275 +122,275 @@
         <version>${jdiff.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-assemblies</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-annotations</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-common</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-common</artifactId>
         <version>${project.version}</version>
         <type>test-jar</type>
       </dependency>
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-auth</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-auth</artifactId>
         <version>${project.version}</version>
         <type>test-jar</type>
       </dependency>
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-nfs</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-hdfs</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-hdfs</artifactId>
         <version>${project.version}</version>
         <type>test-jar</type>
       </dependency>
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-mapreduce-client-app</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-mapreduce-client-app</artifactId>
         <version>${project.version}</version>
         <type>test-jar</type>
       </dependency>
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-mapreduce-client-common</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-yarn-api</artifactId>
         <version>${project.version}</version>
       </dependency>
 
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-yarn-client</artifactId>
         <version>${project.version}</version>
       </dependency>
 
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-mapreduce-client-core</artifactId>
         <version>${project.version}</version>
       </dependency>
 
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-mapreduce-client-jobclient</artifactId>
         <version>${project.version}</version>
       </dependency>
 
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-mapreduce-client-shuffle</artifactId>
         <version>${project.version}</version>
       </dependency>
 
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-yarn</artifactId>
         <version>${project.version}</version>
         <type>pom</type>
       </dependency>
 
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-yarn-server</artifactId>
         <version>${project.version}</version>
       </dependency>
 
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-yarn-server-web-proxy</artifactId>
         <version>${project.version}</version>
       </dependency>
 
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-yarn-server-common</artifactId>
         <version>${project.version}</version>
       </dependency>
 
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
          <artifactId>hadoop-yarn-server-tests</artifactId>
         <version>${project.version}</version>
         <type>test-jar</type>
       </dependency>
 
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-yarn-common</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-yarn-common</artifactId>
         <version>${project.version}</version>
         <type>test-jar</type>
       </dependency>
 
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-yarn-registry</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-yarn-server-nodemanager</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-yarn-server-resourcemanager</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-yarn-server-resourcemanager</artifactId>
         <version>${project.version}</version>
         <type>test-jar</type>
       </dependency>
 
      <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-yarn-applications-distributedshell</artifactId>
         <version>${project.version}</version>
       </dependency>
 
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
          <artifactId>hadoop-mapreduce-client-jobclient</artifactId>
         <version>${project.version}</version>
         <type>test-jar</type>
       </dependency>
 
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-mapreduce-client-hs</artifactId>
         <version>${project.version}</version>
       </dependency>
 
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-mapreduce-examples</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-gridmix</artifactId>
         <version>${project.version}</version>
       </dependency>
 
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-streaming</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-archives</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-distcp</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-datajoin</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-rumen</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-extras</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-ant</artifactId>
         <version>${project.version}</version>
       </dependency>
 
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-client</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-minicluster</artifactId>
         <version>${project.version}</version>
       </dependency>
 
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-minikdc</artifactId>
         <version>${project.version}</version>
       </dependency>
 
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-openstack</artifactId>
         <version>${project.version}</version>
       </dependency>
       
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-azure</artifactId>
         <version>${project.version}</version>
       </dependency>
 
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-aws</artifactId>
         <version>${project.version}</version>
       </dependency>
 
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-kms</artifactId>
         <version>${project.version}</version>
         <classifier>classes</classifier>
         <type>jar</type>
       </dependency>
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-kms</artifactId>
         <version>${project.version}</version>
         <type>test-jar</type>
@@ -860,7 +860,7 @@
         <version>3.0.1</version>
       </dependency>
       <dependency>
-        <groupId>com.didichuxing.hadoop</groupId>
+        <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-sls</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -1053,7 +1053,7 @@
           <version>${maven-pdf-plugin.version}</version>
         </plugin>
         <plugin>
-          <groupId>com.didichuxing.hadoop</groupId>
+          <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-maven-plugins</artifactId>
           <version>${project.version}</version>
         </plugin>

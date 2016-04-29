@@ -20,14 +20,14 @@
                       http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>com.didichuxing.hadoop</groupId>
+    <groupId>org.apache.hadoop</groupId>
     <artifactId>hadoop-project</artifactId>
-    <version>2.7.2</version>
+    <version>2.7.2.didi</version>
     <relativePath>../../hadoop-project</relativePath>
   </parent>
-  <groupId>com.didichuxing.hadoop</groupId>
+  <groupId>org.apache.hadoop</groupId>
   <artifactId>hadoop-kms</artifactId>
-  <version>2.7.2</version>
+  <version>2.7.2.didi</version>
   <packaging>war</packaging>
 
   <name>Apache Hadoop KMS</name>
@@ -44,7 +44,7 @@
 
   <dependencies>
     <dependency>
-      <groupId>com.didichuxing.hadoop</groupId>
+      <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-minikdc</artifactId>
       <scope>test</scope>
     </dependency>
@@ -59,7 +59,7 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.didichuxing.hadoop</groupId>
+      <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-auth</artifactId>
       <scope>compile</scope>
     </dependency>
@@ -89,7 +89,7 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.didichuxing.hadoop</groupId>
+      <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-common</artifactId>
       <scope>compile</scope>
       <exclusions>
@@ -152,7 +152,7 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>com.didichuxing.hadoop</groupId>
+      <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-common</artifactId>
       <scope>test</scope>
       <type>test-jar</type>
@@ -333,7 +333,7 @@
             <artifactId>maven-assembly-plugin</artifactId>
             <dependencies>
               <dependency>
-                <groupId>com.didichuxing.hadoop</groupId>
+                <groupId>org.apache.hadoop</groupId>
                 <artifactId>hadoop-assemblies</artifactId>
                 <version>${project.version}</version>
               </dependency>
