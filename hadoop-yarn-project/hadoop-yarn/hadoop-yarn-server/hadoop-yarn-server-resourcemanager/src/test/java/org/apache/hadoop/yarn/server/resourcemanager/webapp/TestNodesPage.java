@@ -82,11 +82,8 @@ public class TestNodesPage {
     Mockito.verify(writer,
         Mockito.times(numberOfActualTableHeaders + numberOfThInMetricsTable))
         .print("<th");
-    Mockito.verify(
-        writer,
-        Mockito.times(numberOfRacks * numberOfNodesPerRack
-            * numberOfActualTableHeaders + numberOfThInMetricsTable)).print(
-        "<td");
+    Mockito.verify(writer, Mockito.times(numberOfThInMetricsTable))
+        .print("<td");
   }
   
   @Test
@@ -100,11 +97,8 @@ public class TestNodesPage {
     Mockito.verify(writer,
         Mockito.times(numberOfActualTableHeaders + numberOfThInMetricsTable))
         .print("<th");
-    Mockito.verify(
-        writer,
-        Mockito.times(numberOfRacks * numberOfLostNodesPerRack
-            * numberOfActualTableHeaders + numberOfThInMetricsTable)).print(
-        "<td");
+    Mockito.verify(writer, Mockito.times(numberOfThInMetricsTable))
+        .print("<td");
   }
   
   @Test
@@ -114,12 +108,9 @@ public class TestNodesPage {
     nodesBlock.render();
     PrintWriter writer = injector.getInstance(PrintWriter.class);
     WebAppTests.flushOutput(injector);
-
-    Mockito.verify(
-        writer,
-        Mockito.times(numberOfRacks
-            * numberOfActualTableHeaders + numberOfThInMetricsTable)).print(
-        "<td");
+    Mockito.verify(writer, Mockito.times(numberOfThInMetricsTable))
+        .print("<td");
+    Mockito.verify(writer, Mockito.times(1)).print("<script");
   }
   
   @Test
@@ -130,11 +121,8 @@ public class TestNodesPage {
     PrintWriter writer = injector.getInstance(PrintWriter.class);
     WebAppTests.flushOutput(injector);
 
-    Mockito.verify(
-        writer,
-        Mockito.times(numberOfRacks * (numberOfNodesPerRack - 1)
-            * numberOfActualTableHeaders + numberOfThInMetricsTable)).print(
-        "<td");
+    Mockito.verify(writer, Mockito.times(numberOfThInMetricsTable))
+        .print("<td");
   }
   
   @Test
@@ -145,10 +133,7 @@ public class TestNodesPage {
     PrintWriter writer = injector.getInstance(PrintWriter.class);
     WebAppTests.flushOutput(injector);
 
-    Mockito.verify(
-        writer,
-        Mockito.times(numberOfRacks * numberOfNodesPerRack
-            * numberOfActualTableHeaders + numberOfThInMetricsTable)).print(
-        "<td");
+    Mockito.verify(writer, Mockito.times(numberOfThInMetricsTable))
+        .print("<td");
   }
 }
