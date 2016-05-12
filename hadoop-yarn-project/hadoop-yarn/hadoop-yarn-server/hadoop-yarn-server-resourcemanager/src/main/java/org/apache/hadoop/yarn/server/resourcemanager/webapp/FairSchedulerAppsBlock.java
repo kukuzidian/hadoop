@@ -84,6 +84,7 @@ public class FairSchedulerAppsBlock extends HtmlBlock {
             th(".id", "ID").
             th(".user", "User").
             th(".name", "Name").
+            th(".priority", "Priority").
             th(".type", "Application Type").
             th(".queue", "Queue").
             th(".fairshare", "Fair Share").
@@ -127,6 +128,8 @@ public class FairSchedulerAppsBlock extends HtmlBlock {
         appInfo.getUser()))).append("\",\"")
       .append(StringEscapeUtils.escapeJavaScript(StringEscapeUtils.escapeHtml(
         appInfo.getName()))).append("\",\"")
+      .append(StringEscapeUtils.escapeJavaScript(StringEscapeUtils.escapeHtml(
+        appInfo.getPriority().toString()))).append("\",\"")
       .append(StringEscapeUtils.escapeJavaScript(StringEscapeUtils.escapeHtml(
         appInfo.getApplicationType()))).append("\",\"")
       .append(StringEscapeUtils.escapeJavaScript(StringEscapeUtils.escapeHtml(

@@ -28,6 +28,7 @@ import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.api.records.ApplicationResourceUsageReport;
 import org.apache.hadoop.yarn.api.records.Container;
 import org.apache.hadoop.yarn.api.records.FinalApplicationStatus;
+import org.apache.hadoop.yarn.api.records.Priority;
 import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.api.records.ResourceRequest;
 import org.apache.hadoop.yarn.api.records.YarnApplicationState;
@@ -63,6 +64,7 @@ public class AppInfo {
   protected String id;
   protected String user;
   protected String name;
+  protected Priority priority;
   protected String queue;
   protected YarnApplicationState state;
   protected FinalApplicationStatus finalStatus;
@@ -125,6 +127,7 @@ public class AppInfo {
       this.id = app.getApplicationId().toString();
       this.user = app.getUser().toString();
       this.name = app.getName().toString();
+      this.priority = app.getApplicationSubmissionContext().getPriority();
       this.queue = app.getQueue().toString();
       this.progress = app.getProgress() * 100;
       this.diagnostics = app.getDiagnostics().toString();
@@ -201,6 +204,10 @@ public class AppInfo {
 
   public String getUser() {
     return this.user;
+  }
+
+  public Priority getPriority() {
+    return this.priority;
   }
 
   public String getQueue() {
