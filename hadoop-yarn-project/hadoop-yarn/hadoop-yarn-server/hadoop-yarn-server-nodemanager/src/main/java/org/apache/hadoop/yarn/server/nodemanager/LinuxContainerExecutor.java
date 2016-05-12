@@ -247,8 +247,8 @@ public class LinuxContainerExecutor extends ContainerExecutor {
                    Integer.toString(Commands.INITIALIZE_CONTAINER.getValue()),
                    appId,
                    nmPrivateContainerTokensPath.toUri().getPath().toString(),
-                   StringUtils.join(",", localDirs),
-                   StringUtils.join(",", logDirs)));
+                   StringUtils.join("%", localDirs),
+                   StringUtils.join("%", logDirs)));
 
     File jvm =                                  // use same jvm as parent
       new File(new File(System.getProperty("java.home"), "bin"), "java");
@@ -358,8 +358,8 @@ public class LinuxContainerExecutor extends ContainerExecutor {
             nmPrivateCotainerScriptPath.toUri().getPath().toString(),
             nmPrivateTokensPath.toUri().getPath().toString(),
             pidFilePath.toString(),
-            StringUtils.join(",", localDirs),
-            StringUtils.join(",", logDirs),
+            StringUtils.join("%", localDirs),
+            StringUtils.join("%", logDirs),
             resourcesOptions));
         String[] commandArray = command.toArray(new String[command.size()]);
         shExec = new ShellCommandExecutor(commandArray, null, // NM's cwd
