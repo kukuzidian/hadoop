@@ -93,13 +93,21 @@ public class FSAppAttempt extends SchedulerApplicationAttempt
 
   public FSAppAttempt(FairScheduler scheduler,
       ApplicationAttemptId applicationAttemptId, String user, FSLeafQueue queue,
+      Priority priority,
       ActiveUsersManager activeUsersManager, RMContext rmContext) {
     super(applicationAttemptId, user, queue, activeUsersManager, rmContext);
 
     this.scheduler = scheduler;
     this.startTime = scheduler.getClock().getTime();
-    this.priority = Priority.newInstance(1);
+    this.priority = priority;
     this.resourceWeights = new ResourceWeights();
+  }
+
+  public FSAppAttempt(FairScheduler scheduler,
+      ApplicationAttemptId applicationAttemptId, String user, FSLeafQueue queue,
+      ActiveUsersManager activeUsersManager, RMContext rmContext) {
+    this(scheduler, applicationAttemptId, user, queue, Priority.newInstance(1),
+            activeUsersManager, rmContext);
   }
 
   public ResourceWeights getResourceWeights() {
@@ -756,8 +764,6 @@ public class FSAppAttempt extends SchedulerApplicationAttempt
 
   @Override
   public Priority getPriority() {
-    // Right now per-app priorities are not passed to scheduler,
-    // so everyone has the same priority.
     return priority;
   }
 

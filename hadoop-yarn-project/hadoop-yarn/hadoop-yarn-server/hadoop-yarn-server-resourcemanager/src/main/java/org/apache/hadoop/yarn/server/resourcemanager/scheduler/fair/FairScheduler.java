@@ -599,6 +599,10 @@ public class FairScheduler extends
     }
 
     RMApp rmApp = rmContext.getRMApps().get(applicationId);
+    if (rmApp == null) {
+      LOG.info("should not be here." + applicationId + " is null");
+      return;
+    }
     FSLeafQueue queue = assignToQueue(rmApp, queueName, user);
     if (queue == null) {
       return;
@@ -619,7 +623,8 @@ public class FairScheduler extends
     }
   
     SchedulerApplication<FSAppAttempt> application =
-        new SchedulerApplication<FSAppAttempt>(queue, user);
+        new SchedulerApplication<FSAppAttempt>(queue, user, 
+              rmApp.getApplicationSubmissionContext().getPriority());
     applications.put(applicationId, application);
     queue.getMetrics().submitApp(user);
 
@@ -650,8 +655,8 @@ public class FairScheduler extends
 
     FSAppAttempt attempt =
         new FSAppAttempt(this, applicationAttemptId, user,
-            queue, new ActiveUsersManager(getRootQueueMetrics()),
-            rmContext);
+            queue, application.getPriority(),
+            new ActiveUsersManager(getRootQueueMetrics()), rmContext);
     if (transferStateFromPreviousAttempt) {
       attempt.transferStateFromPreviousAttempt(application
           .getCurrentAppAttempt());

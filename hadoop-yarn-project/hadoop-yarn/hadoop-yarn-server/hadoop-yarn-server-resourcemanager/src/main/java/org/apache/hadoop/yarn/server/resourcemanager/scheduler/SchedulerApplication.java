@@ -19,6 +19,7 @@ package org.apache.hadoop.yarn.server.resourcemanager.scheduler;
 
 import org.apache.hadoop.classification.InterfaceAudience.Private;
 import org.apache.hadoop.classification.InterfaceStability.Unstable;
+import org.apache.hadoop.yarn.api.records.Priority;
 import org.apache.hadoop.yarn.server.resourcemanager.rmapp.RMAppState;
 
 @Private
@@ -28,10 +29,16 @@ public class SchedulerApplication<T extends SchedulerApplicationAttempt> {
   private Queue queue;
   private final String user;
   private T currentAttempt;
-
+  private final Priority priority;
+ 
   public SchedulerApplication(Queue queue, String user) {
+    this(queue, user, Priority.newInstance(1));
+  }
+
+  public SchedulerApplication(Queue queue, String user, Priority priority) {
     this.queue = queue;
     this.user = user;
+    this.priority = priority;
   }
 
   public Queue getQueue() {
@@ -52,6 +59,10 @@ public class SchedulerApplication<T extends SchedulerApplicationAttempt> {
 
   public void setCurrentAppAttempt(T currentAttempt) {
     this.currentAttempt = currentAttempt;
+  }
+
+  public Priority getPriority() {
+    return this.priority;
   }
 
   public void stop(RMAppState rmAppFinalState) {

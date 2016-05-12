@@ -107,6 +107,7 @@ import org.apache.hadoop.yarn.api.records.NodeReport;
 import org.apache.hadoop.yarn.api.records.NodeState;
 import org.apache.hadoop.yarn.api.records.QueueACL;
 import org.apache.hadoop.yarn.api.records.QueueInfo;
+import org.apache.hadoop.yarn.api.records.Priority;
 import org.apache.hadoop.yarn.api.records.ReservationDefinition;
 import org.apache.hadoop.yarn.api.records.ReservationId;
 import org.apache.hadoop.yarn.api.records.Resource;
@@ -555,6 +556,11 @@ public class ClientRMService extends AbstractService implements
     if (rmContext.getRMApps().get(applicationId) != null) {
       LOG.info("This is an earlier submitted application: " + applicationId);
       return SubmitApplicationResponse.newInstance();
+    }
+
+    if (submissionContext.getPriority() == null ||
+          submissionContext.getPriority().getPriority() < 0) {
+      submissionContext.setPriority(Priority.newInstance(1));
     }
 
     if (submissionContext.getQueue() == null) {
