@@ -27,6 +27,7 @@ import static org.apache.hadoop.yarn.webapp.view.JQueryUI._TH;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapreduce.v2.api.records.AMInfo;
 import org.apache.hadoop.mapreduce.v2.api.records.JobId;
 import org.apache.hadoop.mapreduce.v2.app.AppContext;
@@ -38,6 +39,7 @@ import org.apache.hadoop.mapreduce.v2.util.MRApps;
 import org.apache.hadoop.mapreduce.v2.util.MRApps.TaskAttemptStateUI;
 import org.apache.hadoop.mapreduce.v2.util.MRWebAppUtil;
 import org.apache.hadoop.util.StringUtils;
+import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.util.Times;
 import org.apache.hadoop.yarn.webapp.ResponseInfo;
 import org.apache.hadoop.yarn.webapp.hamlet.Hamlet;
@@ -53,8 +55,10 @@ import com.google.inject.Inject;
  */
 public class HsJobBlock extends HtmlBlock {
   final AppContext appContext;
+  final Configuration conf;
 
-  @Inject HsJobBlock(AppContext appctx) {
+  @Inject HsJobBlock(Configuration conf, AppContext appctx) {
+    this.conf = conf;
     appContext = appctx;
   }
 
@@ -132,6 +136,9 @@ public class HsJobBlock extends HtmlBlock {
             th(_TH, "Logs").
             _();
         boolean odd = false;
+        boolean enabledLogAggregation = conf.getBoolean(YarnConfiguration.LOG_AGGREGATION_ENABLED,
+            YarnConfiguration.DEFAULT_LOG_AGGREGATION_ENABLED);
+
           for (AMInfo amInfo : amInfos) {
             AMAttemptInfo attempt = new AMAttemptInfo(amInfo,
                 job.getId(), job.getUserName(), "", "");
@@ -141,8 +148,9 @@ public class HsJobBlock extends HtmlBlock {
               td().a(".nodelink", url(MRWebAppUtil.getYARNWebappScheme(),
                   attempt.getNodeHttpAddress()),
                   attempt.getNodeHttpAddress())._().
-              td().a(".logslink", url(attempt.getShortLogsLink()), 
-                      "logs")._().
+              td().a(".logslink",
+                  url(enabledLogAggregation ? attempt.getShortLogsLink() : attempt.getLogsLink()),
+                  "logs")._().
             _();
           }
           table._();
