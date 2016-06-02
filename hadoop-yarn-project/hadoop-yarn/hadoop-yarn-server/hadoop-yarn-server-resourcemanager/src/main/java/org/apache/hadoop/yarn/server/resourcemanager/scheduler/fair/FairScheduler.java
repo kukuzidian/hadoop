@@ -826,6 +826,11 @@ public class FairScheduler extends
     if (rmContainer.getState() == RMContainerState.RESERVED) {
       application.unreserve(rmContainer.getReservedPriority(), node);
     } else {
+      if (!application.getLiveContainersMap().containsKey(container.getId())) {
+        LOG.info("XXX Container " + container + " of application attempt " + appId
+              + " is not alive, skip do completedContainer operation on event " + event);
+        return;
+      }
       application.containerCompleted(rmContainer, containerStatus, event);
       node.releaseContainer(container);
       updateRootQueueMetrics();
