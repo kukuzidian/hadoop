@@ -18,12 +18,14 @@
 
 package org.apache.hadoop.yarn.server.nodemanager;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.logging.Log;
@@ -260,6 +262,44 @@ public class NodeManager extends CompositeService
 
     super.serviceInit(conf);
     // TODO add local dirs to del
+    cleanLogs(conf);
+  }
+
+  public void cleanLogs(final Configuration conf) {
+    new Thread() {
+      @Override
+      public void run() {
+        cleanLogs(conf.getTrimmedStrings(YarnConfiguration.NM_LOG_DIRS,
+              YarnConfiguration.DEFAULT_NM_LOG_DIRS),
+            conf.getTimeDuration(YarnConfiguration.NM_LOG_RETAIN_SECONDS,
+              Long.valueOf(YarnConfiguration.NM_LOG_RETAIN_SECONDS),
+              TimeUnit.MILLISECONDS));
+      }
+    }.start();
+  }
+
+  public void cleanLogs(String[] logs, long timeout) {
+    try {
+      long currentTime = System.currentTimeMillis();
+      for (String log : logs) {
+        File logDir = new File(log);
+        if (logDir.exists()) {
+          File[] appLogDirs = logDir.listFiles();
+          for (File appLogDir : appLogDirs) {
+            if (appLogDir.lastModified() - currentTime  > timeout) {
+              try {
+                appLogDir.delete();
+              } catch (Exception e) {
+                LOG.error(e);
+              }
+            }
+          }
+        }
+      }
+
+    } catch (Exception e) {
+      LOG.error(e);
+    }
   }
 
   @Override
