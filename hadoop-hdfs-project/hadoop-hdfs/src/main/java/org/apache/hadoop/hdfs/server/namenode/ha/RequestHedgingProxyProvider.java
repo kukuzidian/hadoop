@@ -121,10 +121,7 @@ public class RequestHedgingProxyProvider<T> extends
             return retVal;
           } catch (Exception ex) {
             ProxyInfo<T> tProxyInfo = proxyMap.get(callResultFuture);
-            boolean isStandby = isStandbyException(ex, tProxyInfo.proxyInfo);
-            if (!isStandby) {
-              badResults.put(tProxyInfo.proxyInfo, ex);
-            }
+            collectException(badResults, ex, tProxyInfo.proxyInfo);
             numAttempts--;
           }
         }
@@ -190,12 +187,12 @@ public class RequestHedgingProxyProvider<T> extends
   }
 
   /**
-   * Check the exception returned by the proxy log a error message if it's
+   * collect the exception returned by the proxy if it's
    * not a StandbyException (expected exception).
    * @param ex Exception to evaluate.
    * @param proxyInfo Information of the proxy reporting the exception.
    */
-  private boolean isStandbyException(Exception ex, String proxyInfo) {
+  private void collectException(Map<String, Exception> badResults, Exception ex, String proxyInfo) {
     Throwable cause = ex.getCause();
     if (cause != null) {
       Throwable cause2 = cause.getCause();
@@ -208,14 +205,13 @@ public class RequestHedgingProxyProvider<T> extends
             LOG.debug("Invocation returned standby exception on [" +
                     proxyInfo + "]");
           }
-          return true;
         } else {
-          LOG.error(unwrapRemoteException);
-          return false;
+          badResults.put(proxyInfo, unwrapRemoteException);
         }
+        return;
       }
     }
-    return false;
+    badResults.put(proxyInfo, ex);
   }
 
 }
