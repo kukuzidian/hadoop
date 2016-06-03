@@ -410,7 +410,7 @@ public class TestBlocks {
     }
 
     public AttemptsBlockForTest(App ctx) {
-      super(ctx);
+      super(new Configuration(), ctx);
     }
 
     @Override
