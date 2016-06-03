@@ -121,8 +121,10 @@ public class RequestHedgingProxyProvider<T> extends
             return retVal;
           } catch (Exception ex) {
             ProxyInfo<T> tProxyInfo = proxyMap.get(callResultFuture);
-            logProxyException(ex, tProxyInfo.proxyInfo);
-            badResults.put(tProxyInfo.proxyInfo, ex);
+            boolean isStandby = isStandbyException(ex, tProxyInfo.proxyInfo);
+            if (!isStandby) {
+              badResults.put(tProxyInfo.proxyInfo, ex);
+            }
             numAttempts--;
           }
         }
@@ -131,6 +133,8 @@ public class RequestHedgingProxyProvider<T> extends
         // Or should have returned with successful result.
         if (badResults.size() == 1) {
           throw badResults.values().iterator().next();
+        } if (badResults.size() == 0) {
+          throw new RuntimeException("No NameNode is active!");
         } else {
           throw new MultiException(badResults);
         }
@@ -164,7 +168,7 @@ public class RequestHedgingProxyProvider<T> extends
       return successfulProxy;
     }
     Map<String, ProxyInfo<T>> targetProxyInfos = new HashMap<>();
-    StringBuilder combinedInfo = new StringBuilder('[');
+    StringBuilder combinedInfo = new StringBuilder("[");
     for (int i = 0; i < proxies.size(); i++) {
       ProxyInfo<T> pInfo = super.getProxy();
       incrementProxyIndex();
@@ -186,12 +190,12 @@ public class RequestHedgingProxyProvider<T> extends
   }
 
   /**
-   * Check the exception returned by the proxy log a warning message if it's
+   * Check the exception returned by the proxy log a error message if it's
    * not a StandbyException (expected exception).
    * @param ex Exception to evaluate.
    * @param proxyInfo Information of the proxy reporting the exception.
    */
-  private void logProxyException(Exception ex, String proxyInfo) {
+  private boolean isStandbyException(Exception ex, String proxyInfo) {
     Throwable cause = ex.getCause();
     if (cause != null) {
       Throwable cause2 = cause.getCause();
@@ -204,11 +208,14 @@ public class RequestHedgingProxyProvider<T> extends
             LOG.debug("Invocation returned standby exception on [" +
                     proxyInfo + "]");
           }
+          return true;
         } else {
           LOG.error(unwrapRemoteException);
+          return false;
         }
       }
     }
+    return false;
   }
 
 }
