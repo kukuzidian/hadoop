@@ -203,17 +203,12 @@ public class RequestHedgingProxyProvider<T> extends
         if (unwrapRemoteException instanceof StandbyException) {
           if (LOG.isDebugEnabled()) {
             LOG.debug("Invocation returned standby exception on [" +
-                    proxyInfo + "]");
+                proxyInfo + "]");
           }
-          LOG.error("******* found standby exception ******");
-        } else {
-          LOG.error("******* collect unwrap remote exception ******");
-          badResults.put(proxyInfo, unwrapRemoteException);
+          return;
         }
-        return;
       }
     }
-    LOG.error("******* found another exception ******");
     badResults.put(proxyInfo, ex);
   }
 
