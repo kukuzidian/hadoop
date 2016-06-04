@@ -217,8 +217,8 @@ public class RequestHedgingProxyProvider<T> extends
 
       if (cause instanceof InvocationTargetException) {
         badResults.put(proxyInfo, (InvocationTargetException)cause);
+        return;
       }
-      return;
     }
     if (LOG.isDebugEnabled()) {
       LOG.debug("Invocation returned exception on [" + proxyInfo + "]");
