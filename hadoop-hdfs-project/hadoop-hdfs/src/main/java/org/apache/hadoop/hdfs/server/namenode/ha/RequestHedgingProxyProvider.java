@@ -203,16 +203,24 @@ public class RequestHedgingProxyProvider<T> extends
                 remoteException.unwrapRemoteException();
         if (unwrapRemoteException instanceof StandbyException) {
           if (LOG.isDebugEnabled()) {
-            LOG.debug("Invocation returned standby exception on [" +
+            LOG.debug("Invocation returned StandbyException on [" +
                 proxyInfo + "]");
           }
           return;
         }
       }
       if (cause instanceof InvocationTargetException) {
-        badResults.put(proxyInfo, (InvocationTargetException)cause2);
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Invocation returned InvocationTargetException on [" +
+              proxyInfo + "]");
+        }
+        badResults.put(proxyInfo, (InvocationTargetException)cause);
         return;
       }
+    }
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Invocation returned exception on [" +
+          proxyInfo + "]");
     }
     badResults.put(proxyInfo, ex);
   }
