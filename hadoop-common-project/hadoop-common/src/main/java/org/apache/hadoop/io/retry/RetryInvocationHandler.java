@@ -258,15 +258,10 @@ public class RetryInvocationHandler<T> implements RpcInvocationHandler {
         Throwable t = e.getCause();
         if (t.getCause() != null && t.getCause() instanceof InvocationTargetException) {
           LOG.debug("UndeclaredThrowableException contains InvocationTargetException");
-          throw t.getCause();
-        } else {
-          LOG.debug("UndeclaredThrowableException don't contains InvocationTargetException");
-          throw t;
+          throw t.getCause().getCause();
         }
-      } else {
-        LOG.debug("Invoke returned InvocationTargetException");
-        throw e.getCause();
       }
+      throw e.getCause();
     }
   }
 
