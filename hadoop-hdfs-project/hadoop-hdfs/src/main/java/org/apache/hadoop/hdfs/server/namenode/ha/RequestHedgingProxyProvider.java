@@ -205,12 +205,15 @@ public class RequestHedgingProxyProvider<T> extends
             LOG.debug("Invocation returned standby exception on [" +
                     proxyInfo + "]");
           }
+          LOG.error("******* found standby exception ******");
         } else {
+          LOG.error("******* collect unwrap remote exception ******");
           badResults.put(proxyInfo, unwrapRemoteException);
         }
         return;
       }
     }
+    LOG.error("******* found another exception ******");
     badResults.put(proxyInfo, ex);
   }
 
