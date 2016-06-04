@@ -19,6 +19,7 @@ package org.apache.hadoop.hdfs.server.namenode.ha;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.URI;
@@ -207,6 +208,10 @@ public class RequestHedgingProxyProvider<T> extends
           }
           return;
         }
+      }
+      if (cause instanceof InvocationTargetException) {
+        badResults.put(proxyInfo, (InvocationTargetException)cause2);
+        return;
       }
     }
     badResults.put(proxyInfo, ex);
