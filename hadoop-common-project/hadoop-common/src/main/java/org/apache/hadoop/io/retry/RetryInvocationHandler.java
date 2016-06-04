@@ -18,10 +18,7 @@
 package org.apache.hadoop.io.retry;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
+import java.lang.reflect.*;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -256,13 +253,20 @@ public class RetryInvocationHandler<T> implements RpcInvocationHandler {
       }
       return method.invoke(currentProxy.proxy, args);
     } catch (InvocationTargetException e) {
-      LOG.debug("Invoke returned InvocationTargetException");
-      LOG.debug(e.getCause().getClass().getName());
-      throw e.getCause();
-    } catch (Exception ex) {
-      LOG.debug("Catch another exception");
-      LOG.debug(ex.getCause().getClass().getName());
-      throw ex;
+      if (e.getCause() instanceof UndeclaredThrowableException) {
+        LOG.debug("Invoke returned UndeclaredThrowableException");
+        Throwable t = e.getCause();
+        if (t.getCause() != null && t.getCause() instanceof InvocationTargetException) {
+          LOG.debug("UndeclaredThrowableException contains InvocationTargetException");
+          throw t.getCause();
+        } else {
+          LOG.debug("UndeclaredThrowableException don't contains InvocationTargetException");
+          throw t;
+        }
+      } else {
+        LOG.debug("Invoke returned InvocationTargetException");
+        throw e.getCause();
+      }
     }
   }
 
