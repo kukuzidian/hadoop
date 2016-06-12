@@ -271,9 +271,8 @@ public class NodeManager extends CompositeService
       public void run() {
         cleanLogs(conf.getTrimmedStrings(YarnConfiguration.NM_LOG_DIRS,
               YarnConfiguration.DEFAULT_NM_LOG_DIRS),
-            conf.getTimeDuration(YarnConfiguration.NM_LOG_RETAIN_SECONDS,
-              Long.valueOf(YarnConfiguration.DEFAULT_NM_LOG_RETAIN_SECONDS),
-              TimeUnit.MILLISECONDS));
+            conf.getLong(YarnConfiguration.NM_LOG_RETAIN_SECONDS,
+              Long.valueOf(YarnConfiguration.DEFAULT_NM_LOG_RETAIN_SECONDS)));
       }
     }.start();
   }
@@ -281,14 +280,13 @@ public class NodeManager extends CompositeService
   public void cleanLogs(String[] logs, long timeout) {
     try {
       long currentTime = System.currentTimeMillis();
+      File[] appLogDirs;
       for (String log : logs) {
         File logDir = new File(log);
         if (logDir.exists()) {
-          File[] appLogDirs = logDir.listFiles();
+          appLogDirs = logDir.listFiles();
           for (File appLogDir : appLogDirs) {
-            LOG.info("File:" + appLogDir.getName() + ", LastModified:" + appLogDir.lastModified()
-              + ", CurrentTime:" + currentTime + ", TimeOut:" + timeout);
-            if (appLogDir.lastModified() - currentTime  > timeout
+            if (currentTime - appLogDir.lastModified() > timeout * 1000
                 && appLogDir.getName().startsWith("application_")) {
               try {
                 appLogDir.delete();
