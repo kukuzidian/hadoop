@@ -286,6 +286,8 @@ public class NodeManager extends CompositeService
         if (logDir.exists()) {
           File[] appLogDirs = logDir.listFiles();
           for (File appLogDir : appLogDirs) {
+            LOG.info("File:" + appLogDir.getName() + ", LastModified:" + appLogDir.lastModified()
+              + ", CurrentTime:" + currentTime + ", TimeOut:" + timeout);
             if (appLogDir.lastModified() - currentTime  > timeout
                 && appLogDir.getName().startsWith("application_")) {
               try {
