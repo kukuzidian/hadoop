@@ -272,7 +272,7 @@ public class NodeManager extends CompositeService
         cleanLogs(conf.getTrimmedStrings(YarnConfiguration.NM_LOG_DIRS,
               YarnConfiguration.DEFAULT_NM_LOG_DIRS),
             conf.getTimeDuration(YarnConfiguration.NM_LOG_RETAIN_SECONDS,
-              Long.valueOf(YarnConfiguration.NM_LOG_RETAIN_SECONDS),
+              Long.valueOf(YarnConfiguration.DEFAULT_NM_LOG_RETAIN_SECONDS),
               TimeUnit.MILLISECONDS));
       }
     }.start();

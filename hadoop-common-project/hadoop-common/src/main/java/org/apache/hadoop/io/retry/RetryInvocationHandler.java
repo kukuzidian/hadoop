@@ -123,7 +123,6 @@ public class RetryInvocationHandler<T> implements RpcInvocationHandler {
                     + "." + method.getName() + " over " + currentProxy.proxyInfo
                     + ". Not retrying because " + failAction.reason, ex);
           }
-          LOG.debug("Throw exception " + ex.getClass().getName());
           throw ex;
         } else { // retry or failover
           // avoid logging the failover if this is the first call on this
@@ -254,10 +253,8 @@ public class RetryInvocationHandler<T> implements RpcInvocationHandler {
       return method.invoke(currentProxy.proxy, args);
     } catch (InvocationTargetException e) {
       if (e.getCause() instanceof UndeclaredThrowableException) {
-        LOG.debug("Invoke returned UndeclaredThrowableException");
         Throwable t = e.getCause();
         if (t.getCause() != null && t.getCause() instanceof InvocationTargetException) {
-          LOG.debug("UndeclaredThrowableException contains InvocationTargetException");
           throw t.getCause().getCause();
         }
       }
