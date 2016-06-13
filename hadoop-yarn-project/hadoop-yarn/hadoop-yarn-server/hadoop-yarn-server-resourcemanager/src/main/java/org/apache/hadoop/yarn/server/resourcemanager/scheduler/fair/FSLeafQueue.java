@@ -559,4 +559,16 @@ public class FSLeafQueue extends FSQueue {
     return Resources.lessThan(scheduler.getResourceCalculator(),
         scheduler.getClusterResource(), getResourceUsage(), desiredShare);
   }
+
+  @Override
+  public List<Schedulable> simulateSchedule() {
+    List<Schedulable> apps = new ArrayList<Schedulable>();
+    readLock.lock();
+    try {
+      apps.addAll(runnableApps);
+    } finally {
+      readLock.unlock();
+    }
+    return simulateSchedule(apps);
+  }
 }

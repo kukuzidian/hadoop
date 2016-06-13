@@ -20,6 +20,7 @@ package org.apache.hadoop.yarn.server.resourcemanager.scheduler.fair;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -96,7 +97,7 @@ public abstract class FSQueue implements Queue, Schedulable {
   public ResourceWeights getWeights() {
     return scheduler.getAllocationConfiguration().getQueueWeight(getName());
   }
-  
+
   @Override
   public Resource getMinShare() {
     return scheduler.getAllocationConfiguration().getMinResources(getName());
@@ -290,5 +291,12 @@ public abstract class FSQueue implements Queue, Schedulable {
   public String getDefaultNodeLabelExpression() {
     // TODO, add implementation for FS
     return null;
+  }
+
+  public abstract List<Schedulable> simulateSchedule();
+
+  protected List<Schedulable> simulateSchedule(List<Schedulable> schedulables) {
+    Collections.sort(schedulables, policy.getComparator());
+    return schedulables; 
   }
 }

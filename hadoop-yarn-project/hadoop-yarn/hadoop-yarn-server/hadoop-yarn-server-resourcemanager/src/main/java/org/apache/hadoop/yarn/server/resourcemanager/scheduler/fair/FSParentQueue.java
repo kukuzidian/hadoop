@@ -250,4 +250,12 @@ public class FSParentQueue extends FSQueue {
     // TODO Auto-generated method stub
     
   }
+
+  @Override
+  public List<Schedulable> simulateSchedule() {
+    List<Schedulable> queues = new ArrayList<Schedulable>();
+    //todo, we need a lock to protected
+    queues.addAll(childQueues);
+    return simulateSchedule(queues);
+  }
 }
