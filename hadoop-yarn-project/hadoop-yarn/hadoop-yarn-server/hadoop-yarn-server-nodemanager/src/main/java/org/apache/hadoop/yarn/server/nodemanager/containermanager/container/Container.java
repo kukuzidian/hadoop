@@ -35,6 +35,8 @@ public interface Container extends EventHandler<ContainerEvent> {
 
   ContainerId getContainerId();
 
+  long getLocalizationTime();
+
   Resource getResource();
 
   ContainerTokenIdentifier getContainerTokenIdentifier();

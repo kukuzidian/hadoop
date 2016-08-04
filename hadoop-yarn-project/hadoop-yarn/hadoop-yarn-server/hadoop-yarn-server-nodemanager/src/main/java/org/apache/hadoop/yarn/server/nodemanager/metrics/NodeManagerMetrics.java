@@ -17,6 +17,7 @@
  */
 package org.apache.hadoop.yarn.server.nodemanager.metrics;
 
+import org.apache.hadoop.metrics2.MetricsInfo;
 import org.apache.hadoop.metrics2.MetricsSystem;
 import org.apache.hadoop.metrics2.annotation.Metric;
 import org.apache.hadoop.metrics2.annotation.Metrics;
@@ -48,6 +49,23 @@ public class NodeManagerMetrics {
   @Metric MutableGaugeInt availableVCores;
   @Metric("Container launch duration")
       MutableRate containerLaunchDuration;
+
+//Init the new five localization metrics.
+  @Metric("total localized container number")
+  MutableGaugeInt localizedContainerNumber;
+  
+  @Metric("accumulated localized duration of all containers on the node")
+  MutableGaugeInt localizedContainerTotalDuration;
+  
+  @Metric("max localized duration of all containers on the node")
+  MutableGaugeInt localizedDurationMax;
+  
+  @Metric("min localized duration of all containers on the node")
+  MutableGaugeInt localizedDurationMin;
+  
+  @Metric("average localized duration of all containers on the node")
+  MutableGaugeInt localizedDurationAverage;
+ 
 
   private long allocatedMB;
   private long availableMB;
@@ -127,6 +145,34 @@ public class NodeManagerMetrics {
 
   public int getRunningContainers() {
     return containersRunning.value();
+  }
+
+  /*
+   * increase the total node localized container number. 
+   */
+  public void addContainerLocalizedNumber() {
+	  localizedContainerNumber.incr();
+  }
+  //increase the total duration of node localized container number. 
+  public void addContainerLocalizedTotalDuration(int duration) {
+	  localizedContainerTotalDuration.incr(duration);
+  }
+  //summary the max container localized duration of the node. 
+  public void summaryContainerLocalizedMaxDuration(int duration) {
+	    if((localizedDurationMax.value() < duration)){
+     	     localizedDurationMax.set(duration);
+	    }
+  }
+  //summary the min container localized duration of the node. 
+  public void summaryContainerLocalizedMinDuration(int duration) {
+	  if((localizedDurationMin.value() > duration)){
+  	     localizedDurationMin.set(duration);
+	  }
+  }
+  //summary the average container localized duration of the node. 
+  public void summaryContainerLocalizedAverageDuration() {
+	  int tmpAverage = (int)localizedContainerTotalDuration.value()/localizedContainerNumber.value();
+	  localizedDurationAverage.set(tmpAverage);
   }
 
   @VisibleForTesting

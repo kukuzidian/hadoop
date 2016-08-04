@@ -100,6 +100,9 @@ public class ContainerImpl implements Container {
   private long containerLaunchStartTime;
   private static Clock clock = new SystemClock();
 
+  private static long localizedStartTime;
+  private static long localizedEndTime;
+
   /** The NM-wide configuration - not specific to this container */
   private final Configuration daemonConf;
 
@@ -457,6 +460,11 @@ public class ContainerImpl implements Container {
   }
 
   @Override
+  public long getLocalizationTime() {
+	return (localizedEndTime - localizedStartTime);
+  }
+
+  @Override
   public ContainerTokenIdentifier getContainerTokenIdentifier() {
     this.readLock.lock();
     try {
@@ -587,6 +595,9 @@ public class ContainerImpl implements Container {
       final ContainerLaunchContext ctxt = container.launchContext;
       container.metrics.initingContainer();
 
+      //The start/init time of container localizing.
+    	localizedStartTime = System.currentTimeMillis();
+
       container.dispatcher.getEventHandler().handle(new AuxServicesEvent
           (AuxServicesEventType.CONTAINER_INIT, container));
 
@@ -613,6 +624,9 @@ public class ContainerImpl implements Container {
               LocalResourceRequest req =
                   new LocalResourceRequest(rsrc.getValue());
               List<String> links = container.pendingResources.get(req);
+              LOG.info("Container " + container.containerId + "'s Localization Resource Path: " + req.getPath().toString() 
+            		  + ", visibility: " + req.getVisibility() + ", type: " + req.getType() + ", pattern: "
+            		  + req.getPattern() + ", TimeStamp:" + req.getTimestamp());
               if (links == null) {
                 links = new ArrayList<String>();
                 container.pendingResources.put(req, links);
@@ -727,6 +741,18 @@ public class ContainerImpl implements Container {
 
       container.sendLaunchEvent();
       container.metrics.endInitingContainer();
+
+      localizedEndTime = System.currentTimeMillis();
+      
+      int intLocalizaedDuration = (int)(localizedEndTime - localizedStartTime);
+      LOG.info("Container " + container.containerId + "'s Localization Duration is : " + intLocalizaedDuration + "(ms)");
+
+      //statistic the metrics of localized duration of the node.
+      container.metrics.addContainerLocalizedNumber();
+      container.metrics.addContainerLocalizedTotalDuration(intLocalizaedDuration);
+      container.metrics.summaryContainerLocalizedMaxDuration(intLocalizaedDuration);
+      container.metrics.summaryContainerLocalizedMinDuration(intLocalizaedDuration);
+      container.metrics.summaryContainerLocalizedAverageDuration();
 
       // If this is a recovered container that has already launched, skip
       // uploading resources to the shared cache. We do this to avoid uploading

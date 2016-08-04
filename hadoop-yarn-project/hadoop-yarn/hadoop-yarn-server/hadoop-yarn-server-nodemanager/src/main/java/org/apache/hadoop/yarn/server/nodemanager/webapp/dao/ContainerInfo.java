@@ -49,6 +49,7 @@ public class ContainerInfo {
   protected String containerLogsShortLink;
   @XmlTransient
   protected String exitStatus;
+  protected static long localizationTime;
 
   public ContainerInfo() {
   } // JAXB needs this
@@ -90,6 +91,8 @@ public class ContainerInfo {
     }
     this.containerLogsLink = join(requestUri, pathPrefix,
         this.containerLogsShortLink);
+    //get localization time from ContainId object.
+    localizationTime = container.getLocalizationTime();
   }
 
   public String getId() {
@@ -134,6 +137,11 @@ public class ContainerInfo {
 
   public long getVCoresNeeded() {
     return this.totalVCoresNeeded;
+  }
+
+  //Get the data and info for web app to display.
+  public long getLocalizationDuration() {
+	return localizationTime;
   }
 
 }
