@@ -86,6 +86,8 @@ public class ContainerPage extends NMView implements YarnWebParams {
         ._("User", info.getUser())
         ._("TotalMemoryNeeded", info.getMemoryNeeded())
         ._("TotalVCoresNeeded", info.getVCoresNeeded())
+        //get the localization time from ContainerInfo object.
+        ._("LocalizationTime(ms)", info.getLocalizationDuration())
         ._("logs", info.getShortLogLink(), "Link to logs");
       html._(InfoBlock.class);
     }
