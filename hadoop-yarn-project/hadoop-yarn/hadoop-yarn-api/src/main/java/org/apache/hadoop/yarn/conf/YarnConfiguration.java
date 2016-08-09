@@ -779,6 +779,11 @@ public class YarnConfiguration extends Configuration {
       YARN_PREFIX + "log-aggregation.retain-check-interval-seconds";
   public static final long DEFAULT_LOG_AGGREGATION_RETAIN_CHECK_INTERVAL_SECONDS = -1;
 
+  /** The expiry interval for node IP caching. <0 disables the caching */
+  public static final String RM_NODE_IP_CACHE_EXPIRY_INTERVAL_SECS = RM_PREFIX
+      + "node-ip-cache.expiry-interval-secs";
+  public static final int DEFAULT_RM_NODE_IP_CACHE_EXPIRY_INTERVAL_SECS = 60;
+
   /**
    * Number of seconds to retain logs on the NodeManager. Only applicable if Log
    * aggregation is disabled
