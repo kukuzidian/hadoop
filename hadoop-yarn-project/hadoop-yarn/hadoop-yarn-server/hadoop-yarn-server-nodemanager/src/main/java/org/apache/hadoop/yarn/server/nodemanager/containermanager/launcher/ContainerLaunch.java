@@ -101,7 +101,7 @@ public class ContainerLaunch implements Callable<Integer> {
   protected AtomicBoolean shouldLaunchContainer = new AtomicBoolean(false);
   protected AtomicBoolean completed = new AtomicBoolean(false);
 
-  private long sleepDelayBeforeSigKill = 0;
+  private long sleepDelayBeforeSigKill = 250;
   private long maxKillWaitTime = 2000;
 
   protected Path pidFilePath = null;
@@ -418,7 +418,7 @@ public class ContainerLaunch implements Callable<Integer> {
 
         boolean result = exec.signalContainer(user, processId, signal);
 
-        LOG.debug("Sent signal " + signal + " to pid " + processId
+        LOG.info("Sent signal " + signal + " to pid " + processId
           + " as user " + user
           + " for container " + containerIdStr
           + ", result=" + (result? "success" : "failed"));
