@@ -47,7 +47,6 @@ import org.apache.hadoop.yarn.server.nodemanager.containermanager.container.Cont
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.container.ContainerDiagnosticsUpdateEvent;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.launcher.ContainerLaunch;
 import org.apache.hadoop.yarn.server.nodemanager.util.ProcessIdFileReader;
-import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.hadoop.util.Shell;
 import org.apache.hadoop.util.StringUtils;
 
@@ -469,26 +468,10 @@ public abstract class ContainerExecutor implements Configurable {
       setName("Task killer for " + pid);
       setDaemon(false);
     }
-
-    private void checkDoSignal(String containerIdStr, String processId) {
-      try {
-        String ret = Shell.execCommand("/bin/sh", "-c", "ps -ef | grep " + processId);
-        boolean match = ret.contains(containerIdStr);
-        if (!match) {
-          LOG.warn("XXX not match for ret:" + ret + " for " + containerIdStr);
-        }
-      } catch (IOException e) {
-        LOG.warn("not able to execute command /bin/sh -c 'ps'" );
-      }
-    }
-
     @Override
     public void run() {
       try {
         Thread.sleep(delay);
-        ContainerId containerId = container.getContainerId();
-        String containerIdStr = ConverterUtils.toString(containerId);
-        checkDoSignal(containerIdStr, pid); 
         containerExecutor.signalContainer(user, pid, signal);
       } catch (InterruptedException e) {
         return;
