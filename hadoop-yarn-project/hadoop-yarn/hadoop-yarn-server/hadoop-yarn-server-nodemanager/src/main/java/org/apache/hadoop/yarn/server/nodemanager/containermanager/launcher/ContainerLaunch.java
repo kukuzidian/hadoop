@@ -408,7 +408,7 @@ public class ContainerLaunch implements Callable<Integer> {
       // kill process
       if (processId != null) {
         String user = container.getUser();
-        LOG.info("Sending signal to pid " + processId
+        LOG.debug("Sending signal to pid " + processId
             + " as user " + user
             + " for container " + containerIdStr);
 
