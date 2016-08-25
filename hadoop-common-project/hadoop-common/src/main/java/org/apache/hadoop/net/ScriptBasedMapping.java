@@ -147,6 +147,7 @@ public class ScriptBasedMapping extends CachedDNSToSwitchMapping {
     private int maxArgs; //max hostnames per call of the script
     private static final Log LOG =
         LogFactory.getLog(ScriptBasedMapping.class);
+    private Map<String, String> cache = new HashMap<String, String>();
 
     /**
      * Set the configuration and extract the configuration parameters of interest
@@ -158,6 +159,28 @@ public class ScriptBasedMapping extends CachedDNSToSwitchMapping {
       if (conf != null) {
         scriptName = conf.get(SCRIPT_FILENAME_KEY);
         maxArgs = conf.getInt(SCRIPT_ARG_COUNT_KEY, DEFAULT_ARG_COUNT);
+        List<String> command = new ArrayList<String>();
+        command.add("update");
+        try {
+          String output = runResolveCommand(command, scriptName).trim();
+          if (output.startsWith("{") && output.endsWith("}")) {
+            String str = output.substring(1, output.length() -2);
+            String []list = str.split(",");
+            for (String info : list) {
+              String []mapping = info.split(":");
+              String key = mapping[0].replace('\'', ' ');
+              String value = mapping[1].replace('\'', ' ');
+              String newValue = "/" + value.trim();
+              cache.put(key.trim(), "/" + value.trim()); 
+            }
+          } else {
+            LOG.info("parse " + scriptName + " fail for get info:" + output);
+          }
+          //init cache mapping info
+        } catch (Exception ex) {
+          LOG.info("get exception for " + scriptName + " ex:" + 
+                     ex + " info:" + ex.getMessage());
+        }
       } else {
         scriptName = null;
         maxArgs = 0;
@@ -231,14 +254,25 @@ public class ScriptBasedMapping extends CachedDNSToSwitchMapping {
             + Integer.toString(MIN_ALLOWABLE_ARGS));
         return null;
       }
-
+      String key = null;
       while (numProcessed != args.size()) {
         int start = maxArgs * loopCount;
         List<String> cmdList = new ArrayList<String>();
         cmdList.add(commandScriptName);
+        boolean cached = false;
         for (numProcessed = start; numProcessed < (start + maxArgs) &&
             numProcessed < args.size(); numProcessed++) {
+          key = args.get(numProcessed);
+          String info = cache.get(key);
+          if (info != null) {
+            allOutput.append(info).append(" ");
+            cached = true;
+          }
           cmdList.add(args.get(numProcessed));
+        }
+        loopCount++;
+        if (cached) {
+          continue;
         }
         File dir = null;
         String userDir;
@@ -249,12 +283,14 @@ public class ScriptBasedMapping extends CachedDNSToSwitchMapping {
             cmdList.toArray(new String[cmdList.size()]), dir);
         try {
           s.execute();
+          if (key != null) {
+            cache.put(key, s.getOutput());
+          }
           allOutput.append(s.getOutput()).append(" ");
         } catch (Exception e) {
           LOG.warn("Exception running " + s, e);
           return null;
         }
-        loopCount++;
       }
       return allOutput.toString();
     }
