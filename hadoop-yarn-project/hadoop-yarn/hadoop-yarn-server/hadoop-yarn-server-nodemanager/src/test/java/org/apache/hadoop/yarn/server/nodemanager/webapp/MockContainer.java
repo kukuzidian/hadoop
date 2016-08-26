@@ -140,4 +140,9 @@ public class MockContainer implements Container {
   public NMContainerStatus getNMContainerStatus() {
     return null;
   }
+  
+  @Override
+  public long getLocalizationTime() {
+    return 0;
+  }
 }

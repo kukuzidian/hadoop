@@ -69,7 +69,9 @@ public class FSLeafQueue extends FSQueue {
   private Resource amResourceUsage;
 
   private final ActiveUsersManager activeUsersManager;
-  
+ 
+  public static final List<FSQueue> EMPTY_LIST = Collections.emptyList();
+ 
   public FSLeafQueue(String name, FairScheduler scheduler,
       FSParentQueue parent) {
     super(name, scheduler, parent);
@@ -377,7 +379,7 @@ public class FSLeafQueue extends FSQueue {
 
   @Override
   public List<FSQueue> getChildQueues() {
-    return new ArrayList<FSQueue>(1);
+    return EMPTY_LIST;
   }
   
   @Override
@@ -558,5 +560,17 @@ public class FSLeafQueue extends FSQueue {
         scheduler.getClusterResource(), share, getDemand());
     return Resources.lessThan(scheduler.getResourceCalculator(),
         scheduler.getClusterResource(), getResourceUsage(), desiredShare);
+  }
+
+  @Override
+  public List<Schedulable> simulateSchedule() {
+    List<Schedulable> apps = new ArrayList<Schedulable>();
+    readLock.lock();
+    try {
+      apps.addAll(runnableApps);
+    } finally {
+      readLock.unlock();
+    }
+    return simulateSchedule(apps);
   }
 }

@@ -798,6 +798,9 @@ public class ResourceLocalizationService extends CompositeService
                 dirsHandler.getLocalPathForWrite("." + Path.SEPARATOR
                     + ContainerLocalizer.FILECACHE,
                   ContainerLocalizer.getEstimatedSize(resource), true);
+            //Output the localization resource size to log.
+            LOG.info("Destination Path --- " + key.getPath() + " 's Localization Resource Size: " 
+                  + ContainerLocalizer.getEstimatedSize(resource));
             Path publicDirDestPath =
                 publicRsrc.getPathForLocalization(key, publicRootPath,
                     delService);
@@ -851,13 +854,13 @@ public class ResourceLocalizationService extends CompositeService
           try {
             Future<Path> completed = queue.take();
             LocalizerResourceRequestEvent assoc = pending.remove(completed);
+            if (null == assoc) {
+              LOG.error("Localized unknown resource to " + completed);
+              //ToDo delete
+              return;
+            }
             try {
               Path local = completed.get();
-              if (null == assoc) {
-                LOG.error("Localized unknown resource to " + completed);
-                // TODO delete
-                return;
-              }
               LocalResourceRequest key = assoc.getResource().getRequest();
               publicRsrc.handle(new ResourceLocalizedEvent(key, local, FileUtil
                 .getDU(new File(local.toUri()))));
@@ -1084,6 +1087,9 @@ public class ResourceLocalizationService extends CompositeService
       Path dirPath =
           dirsHandler.getLocalPathForWrite(cacheDirectory,
             ContainerLocalizer.getEstimatedSize(rsrc), false);
+      //Output the localization resource size to log.
+      LOG.info("Container " + context.getContainerId()+ "'s Path --- " + dirPath + " 's Localization Resource Size: " 
+            + ContainerLocalizer.getEstimatedSize(rsrc));
       return tracker.getPathForLocalization(new LocalResourceRequest(rsrc),
           dirPath, delService);
     }

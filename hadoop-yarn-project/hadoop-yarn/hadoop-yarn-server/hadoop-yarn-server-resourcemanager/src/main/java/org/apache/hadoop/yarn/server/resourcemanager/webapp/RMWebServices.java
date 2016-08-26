@@ -104,6 +104,8 @@ import org.apache.hadoop.yarn.security.client.RMDelegationTokenIdentifier;
 import org.apache.hadoop.yarn.server.resourcemanager.RMAuditLogger;
 import org.apache.hadoop.yarn.server.resourcemanager.RMAuditLogger.AuditConstants;
 import org.apache.hadoop.yarn.server.resourcemanager.RMServerUtils;
+import org.apache.hadoop.yarn.server.resourcemanager.resource.ResourceType;
+import org.apache.hadoop.yarn.server.resourcemanager.resource.ResourceWeights;
 import org.apache.hadoop.yarn.server.resourcemanager.ResourceManager;
 import org.apache.hadoop.yarn.server.resourcemanager.rmapp.RMApp;
 import org.apache.hadoop.yarn.server.resourcemanager.rmapp.attempt.RMAppAttempt;
@@ -112,6 +114,8 @@ import org.apache.hadoop.yarn.server.resourcemanager.scheduler.ResourceScheduler
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CSQueue;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.fair.FairScheduler;
+import org.apache.hadoop.yarn.server.resourcemanager.scheduler.fair.FSQueue;
+import org.apache.hadoop.yarn.server.resourcemanager.scheduler.fair.Schedulable;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.fifo.FifoScheduler;
 import org.apache.hadoop.yarn.server.resourcemanager.webapp.dao.AppAttemptInfo;
 import org.apache.hadoop.yarn.server.resourcemanager.webapp.dao.AppAttemptsInfo;
@@ -737,7 +741,49 @@ public class RMWebServices {
 
     return Response.status(Status.OK).entity(ret).build();
   }
-  
+
+  private String resourceBriefString(Resource r) {
+    return String.format("(%d,%d)", r.getMemory(), r.getVirtualCores());
+  }
+ 
+  @GET
+  @Path("/diag/schedule/{queue}")
+  @Produces({ MediaType.TEXT_PLAIN,})
+  public String simulateSchedule(@Context HttpServletRequest hsr,
+                                 @PathParam("queue") String queueName) {
+    init();
+
+    if (! (rm.getResourceScheduler() instanceof FairScheduler)) {
+      throw new NotFoundException("only supportted for FairScheduler");
+    }
+
+    FairScheduler fair = (FairScheduler)rm.getResourceScheduler();
+    FSQueue queue = fair.getQueueManager().getQueue(queueName);
+
+    if (queue == null) {
+      throw new NotFoundException("queue not found: " + queueName);
+    }
+
+    StringBuilder sb = new StringBuilder("");
+    try {
+      List<Schedulable> schedulableList = queue.simulateSchedule();
+      int i = 0;
+      for (Schedulable schedulable : schedulableList) {
+        i++;
+        sb.append(String.format("%04d %s min%s max%s dem%s use%s weight=%d\n",
+            i, schedulable.getName(),
+            resourceBriefString(schedulable.getMinShare()),
+            resourceBriefString(schedulable.getMaxShare()),
+            resourceBriefString(schedulable.getDemand()),
+            resourceBriefString(schedulable.getResourceUsage()),
+            (int) schedulable.getWeights().getWeight(ResourceType.MEMORY)));
+      } 
+    } catch (Exception e) {
+      LOG.warn("XXX simulate get exception:" + e + " msg:" + e.getMessage());
+    }
+    return sb.toString();
+  }
+
   @GET
   @Path("/get-node-to-labels")
   @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
