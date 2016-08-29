@@ -103,8 +103,6 @@ public class MapReduceChildJVM {
     String adminClasspath = "";
     if (isMapTask) {
       userClasspath =
-          "-Xmx" + (jobConf.getInt(JobConf.MAPREDUCE_JOB_MAP_MEMORY_MB_PROPERTY,
-              MRJobConfig.DEFAULT_MAP_MEMORY_MB) - 200) + "m " +
           jobConf.get(
               JobConf.MAPRED_MAP_TASK_JAVA_OPTS,
               jobConf.get(
@@ -117,8 +115,6 @@ public class MapReduceChildJVM {
               MRJobConfig.DEFAULT_MAPRED_ADMIN_JAVA_OPTS);
     } else {
       userClasspath =
-          "-Xmx" + (jobConf.getInt(JobConf.MAPREDUCE_JOB_REDUCE_MEMORY_MB_PROPERTY,
-              MRJobConfig.DEFAULT_REDUCE_MEMORY_MB) - 200) + "m " +
           jobConf.get(
               JobConf.MAPRED_REDUCE_TASK_JAVA_OPTS,
               jobConf.get(

@@ -45,6 +45,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.logging.Log;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.fs.ByteBufferReadable;
 import org.apache.hadoop.fs.ByteBufferUtil;
@@ -653,6 +654,8 @@ implements ByteBufferReadable, CanSetDropBehind, CanSetReadahead,
           curCachingStrategy = cachingStrategy;
           shortCircuitForbidden = shortCircuitForbidden();
         }
+        DFSClient.LOG.info("Try connecting " + targetAddr.getHostName() + " for "
+            + src + " " + target + " at " + blk);
         blockReader = new BlockReaderFactory(dfsClient.getConf()).
             setInetSocketAddress(targetAddr).
             setRemotePeerFactory(dfsClient).

@@ -1547,7 +1547,7 @@ public class UserGroupInformation {
    * @return the list of users with the primary group first. If the command
    *    fails, it returns an empty list.
    */
-  public synchronized String[] getGroupNames() {
+  public String[] getGroupNames() {
     ensureInitialized();
     try {
       Set<String> result = new LinkedHashSet<String>
@@ -1556,6 +1556,21 @@ public class UserGroupInformation {
     } catch (IOException ie) {
       LOG.warn("No groups available for user " + getShortUserName());
       return new String[0];
+    }
+  }
+
+  /**
+   * Get the group names for this user.
+   * @return the list of users with the primary group first. If the command
+   *    fails, it returns an empty list.
+   */
+  public List<String> getGroupList() {
+    ensureInitialized();
+    try {
+      return groups.getGroups(getShortUserName());
+    } catch (IOException ie) {
+      LOG.warn("No groups available for user " + getShortUserName());
+      return new ArrayList<String>();
     }
   }
   

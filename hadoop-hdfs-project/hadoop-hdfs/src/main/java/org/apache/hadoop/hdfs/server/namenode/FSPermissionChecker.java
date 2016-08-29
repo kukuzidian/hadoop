@@ -85,7 +85,7 @@ class FSPermissionChecker implements AccessControlEnforcer {
     this.supergroup = supergroup;
     this.callerUgi = callerUgi;
     HashSet<String> s =
-        new HashSet<String>(Arrays.asList(callerUgi.getGroupNames()));
+        new HashSet<String>(callerUgi.getGroupList());
     groups = Collections.unmodifiableSet(s);
     user = callerUgi.getShortUserName();
     isSuper = user.equals(fsOwner) || groups.contains(supergroup);
