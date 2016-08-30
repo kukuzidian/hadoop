@@ -20,6 +20,7 @@ package org.apache.hadoop.net;
 
 import java.util.*;
 import java.io.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -147,7 +148,7 @@ public class ScriptBasedMapping extends CachedDNSToSwitchMapping {
     private int maxArgs; //max hostnames per call of the script
     private static final Log LOG =
         LogFactory.getLog(ScriptBasedMapping.class);
-    private Map<String, String> cache = new HashMap<String, String>();
+    private Map<String, String> cache = new ConcurrentHashMap<String, String>();
 
     /**
      * Set the configuration and extract the configuration parameters of interest
