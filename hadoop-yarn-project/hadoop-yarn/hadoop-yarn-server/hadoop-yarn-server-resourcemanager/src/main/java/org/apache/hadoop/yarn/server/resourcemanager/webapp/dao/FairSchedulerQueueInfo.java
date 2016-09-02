@@ -61,7 +61,7 @@ public class FairSchedulerQueueInfo {
   private String queueName;
   private String schedulingPolicy;
   
-  private Collection<FairSchedulerQueueInfo> childQueues;
+  private FairSchedulerQueueInfoList childQueues;
   
   public FairSchedulerQueueInfo() {
   }
@@ -95,22 +95,33 @@ public class FairSchedulerQueueInfo {
     
     maxApps = allocConf.getQueueMaxApps(queueName);
 
-    childQueues = new ArrayList<FairSchedulerQueueInfo>();
     if (allocConf.isReservable(queueName) &&
         !allocConf.getShowReservationAsQueues(queueName)) {
       return;
     }
 
+    childQueues = getChildQueues(queue, scheduler);
+  }
+ 
+  protected FairSchedulerQueueInfoList getChildQueues(FSQueue queue,
+                     FairScheduler scheduler) {
     Collection<FSQueue> children = queue.getChildQueues();
+    if (children.isEmpty()) {
+       return null;
+    }
+    FairSchedulerQueueInfoList list = new FairSchedulerQueueInfoList();
     for (FSQueue child : children) {
       if (child instanceof FSLeafQueue) {
-        childQueues.add(new FairSchedulerLeafQueueInfo((FSLeafQueue)child, scheduler));
+        list.addToQueueInfoList(
+            new FairSchedulerLeafQueueInfo((FSLeafQueue) child, scheduler));
       } else {
-        childQueues.add(new FairSchedulerQueueInfo(child, scheduler));
+        list.addToQueueInfoList(
+            new FairSchedulerQueueInfo(child, scheduler));
       }
     }
+    return list;
   }
-  
+ 
   /**
    * Returns the steady fair share as a fraction of the entire cluster capacity.
    */
@@ -191,6 +202,6 @@ public class FairSchedulerQueueInfo {
   }
   
   public Collection<FairSchedulerQueueInfo> getChildQueues() {
-    return childQueues;
+    return childQueues.getQueueInfoList();
   }
 }
