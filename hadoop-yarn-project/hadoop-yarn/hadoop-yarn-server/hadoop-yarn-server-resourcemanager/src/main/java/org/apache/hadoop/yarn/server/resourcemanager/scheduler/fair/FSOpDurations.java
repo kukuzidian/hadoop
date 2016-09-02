@@ -55,6 +55,12 @@ public class FSOpDurations implements MetricsSource {
   @Metric("Duration for a preempt call")
   MutableRate preemptCall;
 
+  @Metric("Duration for a assign container call")
+  MutableRate assignContainerCall;
+
+  @Metric("Duration for a completed container call")
+  MutableRate completedContainerCall;
+
   private static final MetricsInfo RECORD_INFO =
       info("FSOpDurations", "Durations of FairScheduler calls or thread-runs");
 
@@ -88,7 +94,9 @@ public class FSOpDurations implements MetricsSource {
     updateThreadRun.setExtended(isExtended);
     updateCall.setExtended(isExtended);
     preemptCall.setExtended(isExtended);
-
+    assignContainerCall.setExtended(isExtended);
+    completedContainerCall.setExtended(isExtended);
+ 
     INSTANCE.isExtended = isExtended;
   }
 
@@ -115,5 +123,13 @@ public class FSOpDurations implements MetricsSource {
 
   public void addPreemptCallDuration(long value) {
     preemptCall.add(value);
+  }
+
+  public void addAssignContainerCallDuration(long value) {
+    assignContainerCall.add(value);
+  }
+
+  public void addCompletedContainerCallDuration(long value) {
+    completedContainerCall.add(value);
   }
 }

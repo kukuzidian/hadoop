@@ -826,6 +826,7 @@ public class FairScheduler extends
     if (rmContainer.getState() == RMContainerState.RESERVED) {
       application.unreserve(rmContainer.getReservedPriority(), node);
     } else {
+      long start = System.nanoTime();
       if (!application.getLiveContainersMap().containsKey(container.getId())) {
         LOG.info("XXX Container " + container + " of application attempt " + appId
               + " is not alive, skip do completedContainer operation on event " + event);
@@ -834,6 +835,8 @@ public class FairScheduler extends
       application.containerCompleted(rmContainer, containerStatus, event);
       node.releaseContainer(container);
       updateRootQueueMetrics();
+      long end = System.nanoTime();
+      fsOpDurations.addCompletedContainerCallDuration((end - start)/1000);
     }
 
     LOG.info("Application attempt " + application.getApplicationAttemptId()
@@ -1103,10 +1106,13 @@ public class FairScheduler extends
       int assignedContainers = 0;
       while (node.getReservedContainer() == null) {
         boolean assignedContainer = false;
+        long start = System.nanoTime();
         if (!queueMgr.getRootQueue().assignContainer(node).equals(
             Resources.none())) {
           assignedContainers++;
           assignedContainer = true;
+          long end = System.nanoTime();
+          fsOpDurations.addAssignContainerCallDuration((end - start)/1000);
         }
         if (!assignedContainer) { break; }
         if (!assignMultiple) { break; }
