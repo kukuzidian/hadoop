@@ -50,6 +50,9 @@ public class RMAppAttemptMetrics {
   private WriteLock writeLock;
   private AtomicLong finishedMemorySeconds = new AtomicLong(0);
   private AtomicLong finishedVcoreSeconds = new AtomicLong(0);
+  private AtomicLong finishedMemory = new AtomicLong(0);
+  private AtomicLong finishedVcore = new AtomicLong(0);
+  private AtomicLong finishedContainers = new AtomicLong(0);
   private RMContext rmContext;
 
   private int[][] localityStatistics =
@@ -113,7 +116,9 @@ public class RMAppAttemptMetrics {
   public AggregateAppResourceUsage getAggregateAppResourceUsage() {
     long memorySeconds = finishedMemorySeconds.get();
     long vcoreSeconds = finishedVcoreSeconds.get();
-
+    long memory = finishedMemory.get();
+    long vcore = finishedVcore.get();
+    long containers = finishedContainers.get();
     // Only add in the running containers if this is the active attempt.
     RMAppAttempt currentAttempt = rmContext.getRMApps()
                    .get(attemptId.getApplicationId()).getCurrentAppAttempt();
@@ -125,7 +130,16 @@ public class RMAppAttemptMetrics {
         vcoreSeconds += appResUsageReport.getVcoreSeconds();
       }
     }
-    return new AggregateAppResourceUsage(memorySeconds, vcoreSeconds);
+    return new AggregateAppResourceUsage(memorySeconds, vcoreSeconds, memory, vcore, containers);
+  }
+
+  public void updateAggregateAppResourceUsage(long finishedMemorySeconds, long finishedVcoreSeconds,
+                                              long finishedMemory, long finishedVcore) {
+    this.finishedMemorySeconds.addAndGet(finishedMemorySeconds);
+    this.finishedVcoreSeconds.addAndGet(finishedVcoreSeconds);
+    this.finishedMemory.addAndGet(finishedMemory);
+    this.finishedVcore.addAndGet(finishedVcore);
+    this.finishedContainers.addAndGet(1);
   }
 
   public void updateAggregateAppResourceUsage(long finishedMemorySeconds,

@@ -82,12 +82,12 @@ public class AppInfo {
   protected long elapsedTime;
   protected String amContainerLogs;
   protected String amHostHttpAddress;
-  protected int allocatedMB;
-  protected int allocatedVCores;
-  protected int runningContainers;
+  protected long allocatedMB;
+  protected long allocatedVCores;
+  protected long runningContainers;
   protected long memorySeconds;
   protected long vcoreSeconds;
-  
+ 
   // preemption info fields
   protected int preemptedResourceMB;
   protected int preemptedResourceVCores;
@@ -139,6 +139,7 @@ public class AppInfo {
       }
       this.finalStatus = app.getFinalApplicationStatus();
       this.clusterId = ResourceManager.getClusterTimeStamp();
+      ApplicationResourceUsageReport resourceReport = null;
       if (hasAccess) {
         this.startedTime = app.getStartTime();
         this.finishedTime = app.getFinishTime();
@@ -157,7 +158,7 @@ public class AppInfo {
             this.amHostHttpAddress = masterContainer.getNodeHttpAddress();
           }
           
-          ApplicationResourceUsageReport resourceReport = attempt
+          resourceReport = attempt
               .getApplicationResourceUsageReport();
           if (resourceReport != null) {
             Resource usedResources = resourceReport.getUsedResources();
@@ -183,6 +184,11 @@ public class AppInfo {
           appMetrics.getResourcePreempted().getVirtualCores();
       memorySeconds = appMetrics.getMemorySeconds();
       vcoreSeconds = appMetrics.getVcoreSeconds();
+      if (resourceReport == null || resourceReport.getNumUsedContainers() < 0) {
+        allocatedMB = appMetrics.getMemory();
+        allocatedVCores = appMetrics.getVcore();
+        runningContainers = appMetrics.getContainers();
+      }
     }
   }
 
@@ -282,15 +288,15 @@ public class AppInfo {
     return this.applicationTags;
   }
   
-  public int getRunningContainers() {
+  public long getRunningContainers() {
     return this.runningContainers;
   }
   
-  public int getAllocatedMB() {
+  public long getAllocatedMB() {
     return this.allocatedMB;
   }
   
-  public int getAllocatedVCores() {
+  public long getAllocatedVCores() {
     return this.allocatedVCores;
   }
   

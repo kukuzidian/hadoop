@@ -1292,6 +1292,9 @@ public class RMAppImpl implements RMApp, Recoverable {
     int numNonAMContainerPreempted = 0;
     long memorySeconds = 0;
     long vcoreSeconds = 0;
+    long memory = 0;
+    long vcore = 0;
+    long containers = 0;
     for (RMAppAttempt attempt : attempts.values()) {
       if (null != attempt) {
         RMAppAttemptMetrics attemptMetrics =
@@ -1307,12 +1310,15 @@ public class RMAppImpl implements RMApp, Recoverable {
             attempt.getRMAppAttemptMetrics().getAggregateAppResourceUsage();
         memorySeconds += resUsage.getMemorySeconds();
         vcoreSeconds += resUsage.getVcoreSeconds();
+        memory += resUsage.getMemory();
+        vcore += resUsage.getVcore();
+        containers += resUsage.getContainers();
       }
     }
 
     return new RMAppMetrics(resourcePreempted,
         numNonAMContainerPreempted, numAMContainerPreempted,
-        memorySeconds, vcoreSeconds);
+        memorySeconds, vcoreSeconds, memory, vcore, containers);
   }
 
   @Private
