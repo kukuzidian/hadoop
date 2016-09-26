@@ -24,15 +24,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Ticker;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.Cache;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import org.apache.hadoop.HadoopIllegalArgumentException;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceAudience.Private;
@@ -42,6 +40,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.CommonConfigurationKeys;
 import org.apache.hadoop.util.ReflectionUtils;
 import org.apache.hadoop.util.StringUtils;
+import org.apache.hadoop.util.Time;
 import org.apache.hadoop.util.Timer;
 
 import org.apache.commons.logging.Log;
@@ -62,9 +61,12 @@ public class Groups {
   
   public final GroupMappingServiceProvider impl;
 
-  private final LoadingCache<String, List<String>> cache;
   private final Map<String, List<String>> staticUserToGroupsMap =
       new HashMap<String, List<String>>();
+
+  private final Map<String, CachedGroups> userToGroupsMap =
+      new ConcurrentHashMap<String, CachedGroups>();
+
   private final long cacheTimeout;
   private final long negativeCacheTimeout;
   private final long warningDeltaMs;
@@ -95,11 +97,6 @@ public class Groups {
     parseStaticMapping(conf);
 
     this.timer = timer;
-    this.cache = CacheBuilder.newBuilder()
-      .refreshAfterWrite(cacheTimeout, TimeUnit.MILLISECONDS)
-      .ticker(new TimerToTickerAdapter(timer))
-      .expireAfterWrite(10 * cacheTimeout, TimeUnit.MILLISECONDS)
-      .build(new GroupCacheLoader());
 
     if(negativeCacheTimeout > 0) {
       Cache<String, Boolean> tempMap = CacheBuilder.newBuilder()
@@ -113,6 +110,40 @@ public class Groups {
       LOG.debug("Group mapping impl=" + impl.getClass().getName() + 
           "; cacheTimeout=" + cacheTimeout + "; warningDeltaMs=" +
           warningDeltaMs);
+  }
+
+  /**
+   * Class to hold the cached groups
+   */
+  public static class CachedGroups {
+    final long timestamp;
+    final List<String> groups;
+
+    /**
+     * Create and initialize group cache
+     */
+    CachedGroups(List<String> groups) {
+      this.groups = groups;
+      this.timestamp = Time.now();
+    }
+
+    /**
+     * Returns time of last cache update
+     *
+     * @return time of last cache update
+     */
+    public long getTimestamp() {
+      return timestamp;
+    }
+
+    /**
+     * Get list of cached groups
+     *
+     * @return cached groups
+     */
+    public List<String> getGroups() {
+      return groups;
+    }
   }
   
   @VisibleForTesting
@@ -180,9 +211,41 @@ public class Groups {
     }
 
     try {
-      return cache.get(user);
-    } catch (ExecutionException e) {
-      throw (IOException)e.getCause();
+      // Return cached value if available
+      CachedGroups groups = userToGroupsMap.get(user);
+      long now = Time.now();
+      // if cache has a value and it hasn't expired
+      if (groups != null && (groups.getTimestamp() + cacheTimeout > now)) {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Returning cached groups for '" + user + "'");
+        }
+        return groups.getGroups();
+      }
+
+      List<String> list = fetchGroupList(user);
+      if (list == null || list.size() == 0) {
+        if (groups != null) {
+          return groups.getGroups();
+        } else {
+          if (isNegativeCacheEnabled()) {
+            negativeCache.add(user);
+          }
+          throw noGroupsForUser(user);
+        }
+      }
+
+      // Create and cache user's groups
+      groups = new CachedGroups(list);
+      if (groups.getGroups().isEmpty()) {
+        throw new IOException("No groups found for user " + user);
+      }
+      userToGroupsMap.put(user, groups);
+      if(LOG.isDebugEnabled()) {
+        LOG.debug("Returning fetched groups for '" + user + "'");
+      }
+      return groups.getGroups();
+    } catch (Exception e) {
+      throw noGroupsForUser(user);
     }
   }
 
@@ -204,50 +267,20 @@ public class Groups {
   }
 
   /**
-   * Deals with loading data into the cache.
+   * Queries impl for groups belonging to the user. This could involve I/O and take awhile.
    */
-  private class GroupCacheLoader extends CacheLoader<String, List<String>> {
-    /**
-     * This method will block if a cache entry doesn't exist, and
-     * any subsequent requests for the same user will wait on this
-     * request to return. If a user already exists in the cache,
-     * this will be run in the background.
-     * @param user key of cache
-     * @return List of groups belonging to user
-     * @throws IOException to prevent caching negative entries
-     */
-    @Override
-    public List<String> load(String user) throws Exception {
-      List<String> groups = fetchGroupList(user);
-
-      if (groups.isEmpty()) {
-        if (isNegativeCacheEnabled()) {
-          negativeCache.add(user);
-        }
-
-        // We throw here to prevent Cache from retaining an empty group
-        throw noGroupsForUser(user);
-      }
-
-      return groups;
-    }
-
-    /**
-     * Queries impl for groups belonging to the user. This could involve I/O and take awhile.
-     */
-    private List<String> fetchGroupList(String user) throws IOException {
-      long startMs = timer.monotonicNow();
-      List<String> groupList = impl.getGroups(user);
-      long endMs = timer.monotonicNow();
-      long deltaMs = endMs - startMs ;
-      UserGroupInformation.metrics.addGetGroups(deltaMs);
-      if (deltaMs > warningDeltaMs) {
-        LOG.warn("Potential performance problem: getGroups(user=" + user + ") " +
+  private List<String> fetchGroupList(String user) throws IOException {
+    long startMs = timer.monotonicNow();
+    List<String> groupList = impl.getGroups(user);
+    long endMs = timer.monotonicNow();
+    long deltaMs = endMs - startMs ;
+    UserGroupInformation.metrics.addGetGroups(deltaMs);
+    if (deltaMs > warningDeltaMs) {
+      LOG.warn("Potential performance problem: getGroups(user=" + user + ") " +
           "took " + deltaMs + " milliseconds.");
-      }
-
-      return groupList;
     }
+
+    return groupList;
   }
 
   /**
@@ -260,7 +293,7 @@ public class Groups {
     } catch (IOException e) {
       LOG.warn("Error refreshing groups cache", e);
     }
-    cache.invalidateAll();
+    userToGroupsMap.clear();
     if(isNegativeCacheEnabled()) {
       negativeCache.clear();
     }
