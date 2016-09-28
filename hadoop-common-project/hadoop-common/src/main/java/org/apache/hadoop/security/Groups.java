@@ -64,14 +64,15 @@ public class Groups {
   private final Map<String, List<String>> staticUserToGroupsMap =
       new HashMap<String, List<String>>();
 
-  private final Map<String, CachedGroups> userToGroupsMap =
-      new ConcurrentHashMap<String, CachedGroups>();
+
 
   private final long cacheTimeout;
   private final long negativeCacheTimeout;
   private final long warningDeltaMs;
   private final Timer timer;
   private Set<String> negativeCache;
+  private Cache<String, CachedGroups> cache;
+  private Map<String, CachedGroups> userToGroupsMap;
 
   public Groups(Configuration conf) {
     this(conf, new Timer());
@@ -103,6 +104,12 @@ public class Groups {
         .expireAfterWrite(negativeCacheTimeout, TimeUnit.MILLISECONDS)
         .ticker(new TimerToTickerAdapter(timer))
         .build();
+
+      cache =  CacheBuilder.newBuilder()
+          .expireAfterWrite(10 * cacheTimeout, TimeUnit.MILLISECONDS)
+          .ticker(new TimerToTickerAdapter(timer))
+          .build();
+      userToGroupsMap = cache.asMap();
       negativeCache = Collections.newSetFromMap(tempMap.asMap());
     }
 
@@ -293,7 +300,7 @@ public class Groups {
     } catch (IOException e) {
       LOG.warn("Error refreshing groups cache", e);
     }
-    userToGroupsMap.clear();
+    cache.invalidateAll();
     if(isNegativeCacheEnabled()) {
       negativeCache.clear();
     }

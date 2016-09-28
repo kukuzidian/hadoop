@@ -169,7 +169,7 @@ public class WhiteList {
         String key = "ip_" + StringUtils.trimToEmpty(ip);
         try {
             // Return cached value if available
-            CachedSet groups = cache.get(key);
+            CachedSet groups = cache.get(ip);
             long now = Time.now();
             // if cache has a value and it hasn't expired
             if (groups != null && (groups.getTimestamp() + cacheTimeout > now)) {
