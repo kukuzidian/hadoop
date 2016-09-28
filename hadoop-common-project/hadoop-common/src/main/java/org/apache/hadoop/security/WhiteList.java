@@ -177,10 +177,8 @@ public class WhiteList {
             }
 
             Set<String> set = getKeyFromRedis(key);
-            if (set == null || set.size() == 0) {
-                if (groups != null) {
-                    return groups.getGroups();
-                }
+            if (set == null && groups != null) {
+                return groups.getGroups();
             }
 
             // Create and cache user's groups

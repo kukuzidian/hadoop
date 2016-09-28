@@ -97,7 +97,7 @@ public class RedisBasedGroupsMapping implements GroupMappingServiceProvider, Con
      * @throws IOException if encounter any error when running the command
      */
     private List<String> getGroupsFromRedis(final String user) throws IOException {
-        ArrayList<String> result = new ArrayList<>();
+        ArrayList<String> result = null;
         Jedis jedis = null;
         try {
             if (pool == null) {
@@ -107,6 +107,8 @@ public class RedisBasedGroupsMapping implements GroupMappingServiceProvider, Con
             jedis = pool.getResource();
             Set<String> set = jedis.smembers("u_" + user);
             result = new ArrayList<>(set);
+            result.add(user);
+            return result;
         } catch(Exception e) {
             LOG.error(e);
         } finally {
@@ -120,7 +122,7 @@ public class RedisBasedGroupsMapping implements GroupMappingServiceProvider, Con
                 LOG.error(e);
             }
         }
-        result.add(user);
+
         return result;
     }
 

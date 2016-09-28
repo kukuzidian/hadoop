@@ -223,7 +223,7 @@ public class Groups {
       }
 
       List<String> list = fetchGroupList(user);
-      if (list == null || list.size() == 0) {
+      if (list == null) {
         if (groups != null) {
           return groups.getGroups();
         } else {
