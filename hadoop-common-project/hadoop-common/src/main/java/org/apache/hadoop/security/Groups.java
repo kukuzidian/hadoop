@@ -64,14 +64,11 @@ public class Groups {
   private final Map<String, List<String>> staticUserToGroupsMap =
       new HashMap<String, List<String>>();
 
-
-
   private final long cacheTimeout;
   private final long negativeCacheTimeout;
   private final long warningDeltaMs;
   private final Timer timer;
   private Set<String> negativeCache;
-  private Cache<String, CachedGroups> cache;
   private Map<String, CachedGroups> userToGroupsMap;
 
   public Groups(Configuration conf) {
@@ -97,6 +94,10 @@ public class Groups {
         CommonConfigurationKeys.HADOOP_SECURITY_GROUPS_CACHE_WARN_AFTER_MS_DEFAULT);
     parseStaticMapping(conf);
 
+    long cacheExpire =
+      conf.getLong(CommonConfigurationKeys.HADOOP_SECURITY_GROUPS_CACHE_EXPIRE_SECS,
+        CommonConfigurationKeys.HADOOP_SECURITY_GROUPS_CACHE_EXPIRE_SECS_DEFAULT) * 1000;
+
     this.timer = timer;
 
     if(negativeCacheTimeout > 0) {
@@ -105,8 +106,8 @@ public class Groups {
         .ticker(new TimerToTickerAdapter(timer))
         .build();
 
-      cache =  CacheBuilder.newBuilder()
-          .expireAfterWrite(10 * cacheTimeout, TimeUnit.MILLISECONDS)
+      Cache<String, CachedGroups> cache =  CacheBuilder.newBuilder()
+          .expireAfterWrite(cacheExpire, TimeUnit.MILLISECONDS)
           .ticker(new TimerToTickerAdapter(timer))
           .build();
       userToGroupsMap = cache.asMap();
@@ -300,7 +301,7 @@ public class Groups {
     } catch (IOException e) {
       LOG.warn("Error refreshing groups cache", e);
     }
-    cache.invalidateAll();
+    userToGroupsMap.clear();
     if(isNegativeCacheEnabled()) {
       negativeCache.clear();
     }
