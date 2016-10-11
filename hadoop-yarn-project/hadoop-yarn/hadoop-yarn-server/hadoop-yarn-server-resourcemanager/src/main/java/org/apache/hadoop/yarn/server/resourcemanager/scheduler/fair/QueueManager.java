@@ -246,11 +246,13 @@ public class QueueManager {
         }
         // remove incompatibility since queue is a leaf currently
         // needs to change to a parent.
+        LOG.info("XXX need change leaf to parent");
         return removeQueueIfEmpty(queue);
       } else {
         if (queueType == FSQueueType.PARENT) {
           return true;
         }
+        LOG.info("XXX need change parent to leaf");
         // If it's an existing parent queue and needs to change to leaf, 
         // remove it if it's empty.
         return removeQueueIfEmpty(queue);
@@ -294,12 +296,15 @@ public class QueueManager {
         leafQueues.remove(queue);
       } else {
         List<FSQueue> childQueues = queue.getChildQueues();
-        while (!childQueues.isEmpty()) {
-          removeQueue(childQueues.get(0));
+        for (FSQueue fsQueue : childQueues) {
+          LOG.info("XXX queue:" + queue.getName() + " remove child queue:" + childQueues.get(0).getName());
+          removeQueue(fsQueue);
         }
       }
+      
       queues.remove(queue.getName());
       FSParentQueue parent = queue.getParent();
+      LOG.info("XXX parent:" + parent.getName() + " remove " + queue.getName());
       parent.removeChildQueue(queue);
     }
   }
@@ -371,6 +376,7 @@ public class QueueManager {
   public void updateAllocationConfiguration(AllocationConfiguration queueConf) {
     // Create leaf queues and the parent queues in a leaf's ancestry if they do not exist
     for (String name : queueConf.getConfiguredQueues().get(FSQueueType.LEAF)) {
+      LOG.info("XXX queueName:" + name);
       if (removeEmptyIncompatibleQueues(name, FSQueueType.LEAF)) {
         getLeafQueue(name, true);
       }
