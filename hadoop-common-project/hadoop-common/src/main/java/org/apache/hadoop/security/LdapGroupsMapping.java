@@ -22,9 +22,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.List;
+import java.util.*;
 
 import javax.naming.CommunicationException;
 import javax.naming.Context;
@@ -192,8 +190,8 @@ public class LdapGroupsMapping
    * @return list of groups for a given user
    */
   @Override
-  public synchronized List<String> getGroups(String user) throws IOException {
-    List<String> emptyResults = new ArrayList<String>();
+  public synchronized Set<String> getGroups(String user) throws IOException {
+    Set<String> emptyResults = new HashSet<String>();
     /*
      * Normal garbage collection takes care of removing Context instances when they are no longer in use. 
      * Connections used by Context instances being garbage collected will be closed automatically.
@@ -228,8 +226,8 @@ public class LdapGroupsMapping
     return emptyResults;
   }
   
-  List<String> doGetGroups(String user) throws NamingException {
-    List<String> groups = new ArrayList<String>();
+  Set<String> doGetGroups(String user) throws NamingException {
+    Set<String> groups = new HashSet<String>();
 
     DirContext ctx = getDirContext();
 

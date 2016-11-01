@@ -20,9 +20,7 @@ package org.apache.hadoop.security;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -93,6 +91,14 @@ public class TestCompositeGroupMapping {
       }
       return new ArrayList<String>();
     }
+
+    protected Set<String> toSet(String group) {
+      Set<String> set = new HashSet<String>();
+      if (group != null) {
+        set.add(group);
+      }
+      return set;
+    }
     
     protected void checkTestConf(String expectedValue) {
       String configValue = getConf().get(PROVIDER_SPECIFIC_CONF_KEY);
@@ -104,7 +110,7 @@ public class TestCompositeGroupMapping {
   
   private static class UserProvider extends GroupMappingProviderBase {
     @Override
-    public List<String> getGroups(String user) throws IOException {
+    public Set<String> getGroups(String user) throws IOException {
       checkTestConf(PROVIDER_SPECIFIC_CONF_VALUE_FOR_USER);
       
       String group = null;
@@ -114,13 +120,13 @@ public class TestCompositeGroupMapping {
         group = jack.group;
       }
       
-      return toList(group);
+      return toSet(group);
     }
   }
   
   private static class ClusterProvider extends GroupMappingProviderBase {    
     @Override
-    public List<String> getGroups(String user) throws IOException {
+    public Set<String> getGroups(String user) throws IOException {
       checkTestConf(PROVIDER_SPECIFIC_CONF_VALUE_FOR_CLUSTER);
       
       String group = null;
@@ -130,7 +136,7 @@ public class TestCompositeGroupMapping {
         group = jack.group2;
       }
       
-      return toList(group);
+      return toSet(group);
     }
   }
   
@@ -156,8 +162,8 @@ public class TestCompositeGroupMapping {
   public void TestMultipleGroupsMapping() throws Exception {
     Groups groups = new Groups(conf);
 
-    assertTrue(groups.getGroups(john.name).get(0).equals(john.group));
-    assertTrue(groups.getGroups(hdfs.name).get(0).equals(hdfs.group));
+    assertTrue(groups.getGroups(john.name).toArray()[0].equals(john.group));
+    assertTrue(groups.getGroups(hdfs.name).toArray()[0].equals(hdfs.group));
   }
 
   @Test
@@ -180,6 +186,6 @@ public class TestCompositeGroupMapping {
     // the configured providers list in order is "userProvider,clusterProvider"
     // group -> userProvider, group2 -> clusterProvider
     assertTrue(groups.getGroups(jack.name).size() == 1);
-    assertTrue(groups.getGroups(jack.name).get(0).equals(jack.group));
+    assertTrue(groups.getGroups(jack.name).toArray()[0].equals(jack.group));
   }
 }

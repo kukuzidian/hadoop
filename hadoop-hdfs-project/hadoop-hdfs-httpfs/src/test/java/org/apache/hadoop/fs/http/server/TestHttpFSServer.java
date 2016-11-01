@@ -37,10 +37,7 @@ import java.io.Writer;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.CommonConfigurationKeysPublic;
@@ -68,7 +65,6 @@ import org.mortbay.jetty.Server;
 import org.mortbay.jetty.webapp.WebAppContext;
 
 import com.google.common.collect.Maps;
-import java.util.Properties;
 import org.apache.hadoop.security.authentication.server.AuthenticationFilter;
 
 public class TestHttpFSServer extends HFSTestCase {
@@ -115,8 +111,8 @@ public class TestHttpFSServer extends HFSTestCase {
     }
 
     @Override
-    public List<String> getGroups(String user) throws IOException {
-      return Arrays.asList(HadoopUsersConfTestHelper.getHadoopUserGroups(user));
+    public Set<String> getGroups(String user) throws IOException {
+      return new HashSet<>(Arrays.asList(HadoopUsersConfTestHelper.getHadoopUserGroups(user)));
     }
 
   }

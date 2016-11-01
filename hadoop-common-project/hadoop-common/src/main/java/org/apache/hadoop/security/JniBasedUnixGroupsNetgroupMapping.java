@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.LinkedList;
+import java.util.Set;
 
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
@@ -64,9 +65,9 @@ public class JniBasedUnixGroupsNetgroupMapping
    * documentation for getent netgroup)
    */
   @Override
-  public List<String> getGroups(String user) throws IOException {
+  public Set<String> getGroups(String user) throws IOException {
     // parent gets unix groups
-    List<String> groups = new LinkedList<String>(super.getGroups(user));
+    Set<String> groups = super.getGroups(user);
     NetgroupCache.getNetgroups(user, groups);
     return groups;
   }

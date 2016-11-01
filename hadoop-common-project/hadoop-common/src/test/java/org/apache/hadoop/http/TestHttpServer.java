@@ -53,13 +53,7 @@ import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -307,8 +301,8 @@ public class TestHttpServer extends HttpServerFunctionalTest {
     }
 
     @Override
-    public List<String> getGroups(String user) throws IOException {
-      return mapping.get(user);
+    public Set<String> getGroups(String user) throws IOException {
+      return new HashSet<String>(mapping.get(user));
     }
   }
 

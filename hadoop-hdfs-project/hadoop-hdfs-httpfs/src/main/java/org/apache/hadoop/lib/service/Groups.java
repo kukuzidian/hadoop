@@ -22,10 +22,11 @@ import org.apache.hadoop.classification.InterfaceAudience;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 @InterfaceAudience.Private
 public interface Groups {
 
-  public List<String> getGroups(String user) throws IOException;
+  public Set<String> getGroups(String user) throws IOException;
 
 }

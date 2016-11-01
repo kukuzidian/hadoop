@@ -23,10 +23,7 @@ import static org.junit.Assert.*;
 import java.io.IOException;
 import java.security.PrivilegedAction;
 import java.security.PrivilegedExceptionAction;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import org.apache.hadoop.HadoopIllegalArgumentException;
 import org.apache.hadoop.conf.Configuration;
@@ -72,11 +69,11 @@ public class TestHSAdminServer {
     private int i = 0;
 
     @Override
-    public List<String> getGroups(String user) throws IOException {
+    public Set<String> getGroups(String user) throws IOException {
       System.out.println("Getting groups in MockUnixGroupsMapping");
       String g1 = user + (10 * i + 1);
       String g2 = user + (10 * i + 2);
-      List<String> l = new ArrayList<String>(2);
+      Set<String> l = new HashSet<String>(2);
       l.add(g1);
       l.add(g2);
       i++;
@@ -149,7 +146,7 @@ public class TestHSAdminServer {
     Groups groups = Groups.getUserToGroupsMappingService(conf);
     String user = UserGroupInformation.getCurrentUser().getUserName();
     System.out.println("first attempt:");
-    List<String> g1 = groups.getGroups(user);
+    List<String> g1 = new ArrayList<String>(groups.getGroups(user));
     String[] str_groups = new String[g1.size()];
     g1.toArray(str_groups);
     System.out.println(Arrays.toString(str_groups));
@@ -157,7 +154,7 @@ public class TestHSAdminServer {
     // Now groups of this user has changed but getGroups returns from the
     // cache,so we would see same groups as before
     System.out.println("second attempt, should be same:");
-    List<String> g2 = groups.getGroups(user);
+    List<String> g2 = new ArrayList<String>(groups.getGroups(user));
     g2.toArray(str_groups);
     System.out.println(Arrays.toString(str_groups));
     for (int i = 0; i < g2.size(); i++) {
@@ -168,7 +165,7 @@ public class TestHSAdminServer {
     System.out
         .println("third attempt(after refresh command), should be different:");
     // Now get groups should return new groups
-    List<String> g3 = groups.getGroups(user);
+    List<String> g3 = new ArrayList<String>(groups.getGroups(user));
     g3.toArray(str_groups);
     System.out.println(Arrays.toString(str_groups));
     for (int i = 0; i < g3.size(); i++) {

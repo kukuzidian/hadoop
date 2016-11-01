@@ -18,12 +18,7 @@
 package org.apache.hadoop.security;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
@@ -61,8 +56,8 @@ public class Groups {
   
   public final GroupMappingServiceProvider impl;
 
-  private final Map<String, List<String>> staticUserToGroupsMap =
-      new HashMap<String, List<String>>();
+  private final Map<String, Set<String>> staticUserToGroupsMap =
+      new HashMap<String, Set<String>>();
 
   private final long cacheTimeout;
   private final long negativeCacheTimeout;
@@ -125,12 +120,12 @@ public class Groups {
    */
   public static class CachedGroups {
     final long timestamp;
-    final List<String> groups;
+    final Set<String> groups;
 
     /**
      * Create and initialize group cache
      */
-    CachedGroups(List<String> groups) {
+    CachedGroups(Set<String> groups) {
       this.groups = groups;
       this.timestamp = Time.now();
     }
@@ -149,7 +144,7 @@ public class Groups {
      *
      * @return cached groups
      */
-    public List<String> getGroups() {
+    public Set<String> getGroups() {
       return groups;
     }
   }
@@ -180,10 +175,9 @@ public class Groups {
       String[] userToGroupsArray = userToGroups.toArray(new String[userToGroups
           .size()]);
       String user = userToGroupsArray[0];
-      List<String> groups = Collections.emptyList();
+      Set<String> groups = null;
       if (userToGroupsArray.length == 2) {
-        groups = (List<String>) StringUtils
-            .getStringCollection(userToGroupsArray[1]);
+        groups = new HashSet<String>(StringUtils.getStringCollection(userToGroupsArray[1]));
       }
       staticUserToGroupsMap.put(user, groups);
     }
@@ -204,9 +198,9 @@ public class Groups {
    * @return the group memberships of the user
    * @throws IOException if user does not exist
    */
-  public List<String> getGroups(final String user) throws IOException {
+  public Set<String> getGroups(final String user) throws IOException {
     // No need to lookup for groups of static users
-    List<String> staticMapping = staticUserToGroupsMap.get(user);
+    Set<String> staticMapping = staticUserToGroupsMap.get(user);
     if (staticMapping != null) {
       return staticMapping;
     }
@@ -230,8 +224,8 @@ public class Groups {
         return groups.getGroups();
       }
 
-      List<String> list = fetchGroupList(user);
-      if (list == null) {
+      Set<String> group = fetchGroup(user);
+      if (group == null) {
         if (groups != null) {
           return groups.getGroups();
         } else {
@@ -243,7 +237,7 @@ public class Groups {
       }
 
       // Create and cache user's groups
-      groups = new CachedGroups(list);
+      groups = new CachedGroups(group);
       if (groups.getGroups().isEmpty()) {
         throw new IOException("No groups found for user " + user);
       }
@@ -277,9 +271,9 @@ public class Groups {
   /**
    * Queries impl for groups belonging to the user. This could involve I/O and take awhile.
    */
-  private List<String> fetchGroupList(String user) throws IOException {
+  private Set<String> fetchGroup(String user) throws IOException {
     long startMs = timer.monotonicNow();
-    List<String> groupList = impl.getGroups(user);
+    Set<String> group = impl.getGroups(user);
     long endMs = timer.monotonicNow();
     long deltaMs = endMs - startMs ;
     UserGroupInformation.metrics.addGetGroups(deltaMs);
@@ -288,7 +282,7 @@ public class Groups {
           "took " + deltaMs + " milliseconds.");
     }
 
-    return groupList;
+    return group;
   }
 
   /**
