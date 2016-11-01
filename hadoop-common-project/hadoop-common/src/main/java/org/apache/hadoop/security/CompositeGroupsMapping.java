@@ -65,10 +65,10 @@ public class CompositeGroupsMapping
    * @return list of groups for a given user
    */
   @Override
-  public synchronized List<String> getGroups(String user) throws IOException {
+  public synchronized Set<String> getGroups(String user) throws IOException {
     Set<String> groupSet = new TreeSet<String>();
 
-    List<String> groups = null;
+    Set<String> groups = null;
     for (GroupMappingServiceProvider provider : providersList) {
       try {
         groups = provider.getGroups(user);
@@ -81,9 +81,7 @@ public class CompositeGroupsMapping
       }
     }
 
-    List<String> results = new ArrayList<String>(groupSet.size());
-    results.addAll(groupSet);
-    return results;
+    return groupSet;
   }
   
   /**

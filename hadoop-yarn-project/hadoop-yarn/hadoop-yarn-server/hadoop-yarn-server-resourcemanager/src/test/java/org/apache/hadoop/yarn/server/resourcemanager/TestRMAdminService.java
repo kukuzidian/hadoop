@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.security.AccessControlException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -444,7 +445,7 @@ public class TestRMAdminService {
     rm.adminService
         .refreshUserToGroupsMappings(RefreshUserToGroupsMappingsRequest
             .newInstance());
-    List<String> groupAfter =
+    Set<String> groupAfter =
         Groups.getUserToGroupsMappingService(configuration).getGroups(user);
 
     // should get the updated groups
@@ -741,7 +742,7 @@ public class TestRMAdminService {
           .get("hadoop.proxyuser.test.hosts").contains("test_hosts"));
 
       // verify UserToGroupsMappings
-      List<String> groupAfter =
+      Set<String> groupAfter =
           Groups.getUserToGroupsMappingService(configuration).getGroups(
               UserGroupInformation.getCurrentUser().getUserName());
       Assert.assertTrue(groupAfter.contains("test_group_D")
@@ -851,10 +852,10 @@ public class TestRMAdminService {
   private static class MockUnixGroupsMapping implements
       GroupMappingServiceProvider {
 
-    private static List<String> group = new ArrayList<String>();
+    private static Set<String> group = new HashSet<String>();
 
     @Override
-    public List<String> getGroups(String user) throws IOException {
+    public Set<String> getGroups(String user) throws IOException {
       return group;
     }
 

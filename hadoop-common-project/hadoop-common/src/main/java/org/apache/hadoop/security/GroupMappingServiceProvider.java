@@ -19,6 +19,7 @@ package org.apache.hadoop.security;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
@@ -40,7 +41,7 @@ public interface GroupMappingServiceProvider {
    * @return group memberships of user
    * @throws IOException
    */
-  public List<String> getGroups(String user) throws IOException;
+  public Set<String> getGroups(String user) throws IOException;
   /**
    * Refresh the cache of groups and user mapping
    * @throws IOException

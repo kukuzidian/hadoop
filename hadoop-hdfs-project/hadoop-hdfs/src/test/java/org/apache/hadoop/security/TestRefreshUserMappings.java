@@ -33,9 +33,7 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLDecoder;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -60,11 +58,11 @@ public class TestRefreshUserMappings {
     private int i=0;
     
     @Override
-    public List<String> getGroups(String user) throws IOException {
+    public Set<String> getGroups(String user) throws IOException {
       System.out.println("Getting groups in MockUnixGroupsMapping");
       String g1 = user + (10 * i + 1);
       String g2 = user + (10 * i + 2);
-      List<String> l = new ArrayList<String>(2);
+      Set<String> l = new HashSet<String>(2);
       l.add(g1);
       l.add(g2);
       i++;
@@ -113,13 +111,13 @@ public class TestRefreshUserMappings {
     Groups groups = Groups.getUserToGroupsMappingService(config);
     String user = UserGroupInformation.getCurrentUser().getUserName();
     System.out.println("first attempt:");
-    List<String> g1 = groups.getGroups(user);
+    List<String> g1 = new ArrayList<String>(groups.getGroups(user));
     String [] str_groups = new String [g1.size()];
     g1.toArray(str_groups);
     System.out.println(Arrays.toString(str_groups));
     
     System.out.println("second attempt, should be same:");
-    List<String> g2 = groups.getGroups(user);
+    List<String> g2 = new ArrayList<String>(groups.getGroups(user));
     g2.toArray(str_groups);
     System.out.println(Arrays.toString(str_groups));
     for(int i=0; i<g2.size(); i++) {
@@ -127,7 +125,7 @@ public class TestRefreshUserMappings {
     }
     admin.run(args);
     System.out.println("third attempt(after refresh command), should be different:");
-    List<String> g3 = groups.getGroups(user);
+    List<String> g3 = new ArrayList<String>(groups.getGroups(user));
     g3.toArray(str_groups);
     System.out.println(Arrays.toString(str_groups));
     for(int i=0; i<g3.size(); i++) {
@@ -138,7 +136,7 @@ public class TestRefreshUserMappings {
     // test time out
     Thread.sleep(groupRefreshTimeoutSec*1100);
     System.out.println("fourth attempt(after timeout), should be different:");
-    List<String> g4 = groups.getGroups(user);
+    List<String> g4 = new ArrayList<String>(groups.getGroups(user));
     g4.toArray(str_groups);
     System.out.println(Arrays.toString(str_groups));
     for(int i=0; i<g4.size(); i++) {

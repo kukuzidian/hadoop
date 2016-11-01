@@ -27,6 +27,7 @@ import org.apache.hadoop.lib.util.ConfigurationUtils;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 @InterfaceAudience.Private
 public class GroupsService extends BaseService implements Groups {
@@ -51,7 +52,7 @@ public class GroupsService extends BaseService implements Groups {
   }
 
   @Override
-  public List<String> getGroups(String user) throws IOException {
+  public Set<String> getGroups(String user) throws IOException {
     return hGroups.getGroups(user);
   }
 

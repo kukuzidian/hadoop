@@ -29,16 +29,7 @@ import java.security.Principal;
 import java.security.PrivilegedAction;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import javax.security.auth.Subject;
 import javax.security.auth.callback.CallbackHandler;
@@ -661,7 +652,7 @@ public class UserGroupInformation {
    * 
    * @param user                The principal name to load from the ticket
    *                            cache
-   * @param ticketCachePath     the path to the ticket cache file
+   * @param ticketCache     the path to the ticket cache file
    *
    * @throws IOException        if the kerberos login fails
    */
@@ -720,8 +711,6 @@ public class UserGroupInformation {
 
    /**
    * Create a UserGroupInformation from a Subject with Kerberos principal.
-   *
-   * @param user                The KerberosPrincipal to use in UGI
    *
    * @throws IOException        if the kerberos login fails
    */
@@ -1336,15 +1325,13 @@ public class UserGroupInformation {
     return null;
   }
 
-
-  
   /**
    * This class is used for storing the groups for testing. It stores a local
    * map that has the translation of usernames to groups.
    */
   private static class TestingGroups extends Groups {
-    private final Map<String, List<String>> userToGroupsMapping = 
-      new HashMap<String,List<String>>();
+    private final Map<String, Set<String>> userToGroupsMapping =
+      new HashMap<String, Set<String>>();
     private Groups underlyingImplementation;
     
     private TestingGroups(Groups underlyingImplementation) {
@@ -1353,8 +1340,8 @@ public class UserGroupInformation {
     }
     
     @Override
-    public List<String> getGroups(String user) throws IOException {
-      List<String> result = userToGroupsMapping.get(user);
+    public Set<String> getGroups(String user) throws IOException {
+      Set<String> result = userToGroupsMapping.get(user);
       
       if (result == null) {
         result = underlyingImplementation.getGroups(user);
@@ -1364,7 +1351,7 @@ public class UserGroupInformation {
     }
 
     private void setUserGroups(String user, String[] groups) {
-      userToGroupsMapping.put(user, Arrays.asList(groups));
+      userToGroupsMapping.put(user, new HashSet<String>(Arrays.asList(groups)));
     }
   }
 
@@ -1560,17 +1547,32 @@ public class UserGroupInformation {
   }
 
   /**
-   * Get the group names for this user.
-   * @return the list of users with the primary group first. If the command
-   *    fails, it returns an empty list.
+   * Check whether user is super user.
+   * @return is super user or not
    */
-  public List<String> getGroupList() {
+  public boolean isSuperUser(String supergroup) {
     ensureInitialized();
     try {
-      return groups.getGroups(getShortUserName());
+      Set<String> groupSet = groups.getGroups(getShortUserName());
+      return groupSet.contains(supergroup);
     } catch (IOException ie) {
       LOG.warn("No groups available for user " + getShortUserName());
-      return new ArrayList<String>();
+      return false;
+    }
+  }
+
+  /**
+   * Check group for this user.
+   * @return has group or not
+   */
+  public boolean containsGroup(String group) {
+    ensureInitialized();
+    try {
+      Set<String> groupSet = groups.getGroups(getShortUserName());
+      return groupSet.contains(group) || groupSet.contains("*");
+    } catch (IOException ie) {
+      LOG.warn("No groups available for user " + getShortUserName());
+      return false;
     }
   }
   

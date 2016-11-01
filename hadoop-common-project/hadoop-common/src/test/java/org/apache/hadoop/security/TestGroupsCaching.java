@@ -68,16 +68,16 @@ public class TestGroupsCaching {
     private static long getGroupsDelayMs = 0;
 
     @Override
-    public List<String> getGroups(String user) throws IOException {
+    public Set<String> getGroups(String user) throws IOException {
       LOG.info("Getting groups for " + user);
       requestCount++;
 
       delayIfNecessary();
 
       if (blackList.contains(user)) {
-        return new LinkedList<String>();
+        return new HashSet<String>();
       }
-      return new LinkedList<String>(allGroups);
+      return allGroups;
     }
 
     private void delayIfNecessary() {
@@ -130,7 +130,7 @@ public class TestGroupsCaching {
     private static int requestCount = 0;
 
     @Override
-    public List<String> getGroups(String user) throws IOException {
+    public Set<String> getGroups(String user) throws IOException {
       requestCount++;
       throw new IOException("For test");
     }
@@ -181,7 +181,7 @@ public class TestGroupsCaching {
   public static class FakeunPrivilegedGroupMapping extends FakeGroupMapping {
     private static boolean invoked = false;
     @Override
-    public List<String> getGroups(String user) throws IOException {
+    public Set<String> getGroups(String user) throws IOException {
       invoked = true;
       return super.getGroups(user);
     }
@@ -196,7 +196,7 @@ public class TestGroupsCaching {
         FakeunPrivilegedGroupMapping.class, ShellBasedUnixGroupsMapping.class);
     conf.set(CommonConfigurationKeys.HADOOP_USER_GROUP_STATIC_OVERRIDES, "me=;user1=group1;user2=group1,group2");
     Groups groups = new Groups(conf);
-    List<String> userGroups = groups.getGroups("me");
+    Set<String> userGroups = groups.getGroups("me");
     assertTrue("non-empty groups for static user", userGroups.isEmpty());
     assertFalse("group lookup done for static user",
         FakeunPrivilegedGroupMapping.invoked);
@@ -447,7 +447,7 @@ public class TestGroupsCaching {
     FakeGroupMapping.addToBlackList("dne");
 
     try {
-      List<String> g = groups.getGroups("dne");
+      Set<String> g = groups.getGroups("dne");
       fail("Should have failed to find this group");
     } catch (IOException e) {
       // pass
