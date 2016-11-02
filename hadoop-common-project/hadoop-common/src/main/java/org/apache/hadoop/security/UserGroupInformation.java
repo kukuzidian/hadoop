@@ -1537,12 +1537,26 @@ public class UserGroupInformation {
   public String[] getGroupNames() {
     ensureInitialized();
     try {
-      Set<String> result = new LinkedHashSet<String>
-        (groups.getGroups(getShortUserName()));
+      Set<String> result = groups.getGroups(getShortUserName());
       return result.toArray(new String[result.size()]);
     } catch (IOException ie) {
       LOG.warn("No groups available for user " + getShortUserName());
       return new String[0];
+    }
+  }
+
+  /**
+   * Get the group set for this user.
+   * @return the set of users with the primary group first. If the command
+   *    fails, it returns an empty list.
+   */
+  public Set<String> getGroupSet() {
+    ensureInitialized();
+    try {
+      return groups.getGroups(getShortUserName());
+    } catch (IOException ie) {
+      LOG.warn("No groups available for user " + getShortUserName());
+      return new HashSet<String>();
     }
   }
 
