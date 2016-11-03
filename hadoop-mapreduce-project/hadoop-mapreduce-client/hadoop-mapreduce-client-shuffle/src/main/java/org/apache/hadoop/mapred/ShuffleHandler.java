@@ -1044,7 +1044,9 @@ public class ShuffleHandler extends AuxiliaryService {
     protected void setResponseHeaders(HttpResponse response,
         boolean keepAliveParam, long contentLength) {
       if (!connectionKeepAliveEnabled && !keepAliveParam) {
-        LOG.info("Setting connection close header...");
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Setting connection close header...");
+        }
         response.setHeader(HttpHeaders.CONNECTION, CONNECTION_CLOSE);
       } else {
         response.setHeader(HttpHeaders.CONTENT_LENGTH,
