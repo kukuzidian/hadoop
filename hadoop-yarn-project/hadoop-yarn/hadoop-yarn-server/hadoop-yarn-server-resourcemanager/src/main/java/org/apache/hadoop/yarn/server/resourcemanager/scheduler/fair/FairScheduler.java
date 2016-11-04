@@ -650,6 +650,10 @@ public class FairScheduler extends
       boolean isAttemptRecovering) {
     SchedulerApplication<FSAppAttempt> application =
         applications.get(applicationAttemptId.getApplicationId());
+    if (application == null) {
+       LOG.warn("XXX not get attempt info for " + applicationAttemptId.getApplicationId());
+       return ;
+    }
     String user = application.getUser();
     FSLeafQueue queue = (FSLeafQueue) application.getQueue();
 

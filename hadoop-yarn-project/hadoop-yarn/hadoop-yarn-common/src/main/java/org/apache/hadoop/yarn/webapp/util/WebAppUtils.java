@@ -23,12 +23,14 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.hadoop.classification.InterfaceAudience.Private;
 import org.apache.hadoop.classification.InterfaceStability.Evolving;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.http.HtmlQuoting;
 import org.apache.hadoop.http.HttpConfig.Policy;
 import org.apache.hadoop.http.HttpServer2;
 import org.apache.hadoop.net.NetUtils;
@@ -36,6 +38,10 @@ import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.conf.HAUtil;
 import org.apache.hadoop.yarn.exceptions.YarnRuntimeException;
 import org.apache.hadoop.yarn.util.RMHAUtils;
+
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
+import javax.servlet.http.HttpServletRequest;
 
 @Private
 @Evolving
@@ -375,5 +381,39 @@ public class WebAppUtils {
       password = null;
     }
     return password;
+  }
+
+  private static String getURLEncodedQueryString(HttpServletRequest request) {
+    String queryString = request.getQueryString();
+    if (queryString != null && !queryString.isEmpty()) {
+      String reqEncoding = request.getCharacterEncoding();
+      if (reqEncoding == null || reqEncoding.isEmpty()) {
+        reqEncoding = "ISO-8859-1";
+      }
+      Charset encoding = Charset.forName(reqEncoding);
+      List<NameValuePair> params = URLEncodedUtils.parse(queryString, encoding);
+      return URLEncodedUtils.format(params, encoding);
+    }
+    return null;
+  }
+
+  public static String getHtmlEscapedURIWithQueryString(
+      HttpServletRequest request) {
+    String urlEncodedQueryString = getURLEncodedQueryString(request);
+    if (urlEncodedQueryString != null) {
+      return HtmlQuoting.quoteHtmlChars(
+          request.getRequestURI() + "?" + urlEncodedQueryString);
+    }
+    return HtmlQuoting.quoteHtmlChars(request.getRequestURI());
+  }
+ 
+  public static String appendQueryParams(HttpServletRequest request,
+      String targetUri) {
+    String ret = targetUri;
+    String urlEncodedQueryString = getURLEncodedQueryString(request);
+    if (urlEncodedQueryString != null) {
+      ret += "?" + urlEncodedQueryString;
+    }
+    return ret;
   }
 }
