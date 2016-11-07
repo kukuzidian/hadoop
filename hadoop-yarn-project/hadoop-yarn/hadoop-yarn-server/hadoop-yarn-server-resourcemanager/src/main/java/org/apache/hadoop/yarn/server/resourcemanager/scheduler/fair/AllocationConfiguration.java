@@ -30,12 +30,16 @@ import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationSchedulerConfiguration;
 import org.apache.hadoop.yarn.server.resourcemanager.resource.ResourceWeights;
 import org.apache.hadoop.yarn.util.resource.Resources;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import com.google.common.annotations.VisibleForTesting;
 
 public class AllocationConfiguration extends ReservationSchedulerConfiguration {
   private static final AccessControlList EVERYBODY_ACL = new AccessControlList("*");
   private static final AccessControlList NOBODY_ACL = new AccessControlList(" ");
+
+  private static final Log LOG = LogFactory.getLog(AllocationConfiguration.class);
   
   // Minimum resource allocation for each queue
   private final Map<String, Resource> minQueueResources;
@@ -170,7 +174,7 @@ public class AllocationConfiguration extends ReservationSchedulerConfiguration {
         return operationAcl;
       }
     }
-    return (queue.equals("root")) ? EVERYBODY_ACL : NOBODY_ACL;
+    return NOBODY_ACL;
   }
   
   /**
@@ -248,13 +252,15 @@ public class AllocationConfiguration extends ReservationSchedulerConfiguration {
   
   public boolean hasAccess(String queueName, QueueACL acl,
       UserGroupInformation user) {
+    LOG.info("XXX check " + queueName + " acl");
     int lastPeriodIndex = queueName.length();
     while (lastPeriodIndex != -1) {
       String queue = queueName.substring(0, lastPeriodIndex);
       if (getQueueAcl(queue, acl).isUserAllowed(user)) {
+        LOG.info("XXX " + queue + " isUserAllowd");
         return true;
       }
-
+      LOG.info("XXX " + queue + " not UserAllowd");
       lastPeriodIndex = queueName.lastIndexOf('.', lastPeriodIndex - 1);
     }
     

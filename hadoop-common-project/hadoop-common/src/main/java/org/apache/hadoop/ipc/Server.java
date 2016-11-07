@@ -1373,7 +1373,9 @@ public abstract class Server {
             LOG.debug("SASL server successfully authenticated client: " + user);
           }
           rpcMetrics.incrAuthenticationSuccesses();
-          AUDITLOG.info(AUTH_SUCCESSFUL_FOR + user);
+          if (LOG.isDebugEnabled()) {
+            AUDITLOG.debug(AUTH_SUCCESSFUL_FOR + user);
+          }
           saslContextEstablished = true;
         }
       } catch (WrappedRpcServerException wrse) { // don't re-wrap
