@@ -23,6 +23,7 @@ import static org.junit.Assert.assertNotSame;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.lib.server.Server;
@@ -45,7 +46,7 @@ public class TestGroupsService extends HTestCase {
     server.init();
     Groups groups = server.get(Groups.class);
     assertNotNull(groups);
-    List<String> g = groups.getGroups(System.getProperty("user.name"));
+    Set<String> g = groups.getGroups(System.getProperty("user.name"));
     assertNotSame(g.size(), 0);
     server.destroy();
   }
