@@ -25,6 +25,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -141,10 +142,10 @@ public class TestAccessControlList {
     AccessControlList acl) throws Exception {
 
     // check that the netgroups are working
-    List<String> elvisGroups = groups.getGroups("elvis");
+    Set<String> elvisGroups = groups.getGroups("elvis");
     assertTrue(elvisGroups.contains("@lasVegas"));
     assertTrue(elvisGroups.contains("@memphis"));
-    List<String> jerryLeeLewisGroups = groups.getGroups("jerryLeeLewis");
+    Set<String> jerryLeeLewisGroups = groups.getGroups("jerryLeeLewis");
     assertTrue(jerryLeeLewisGroups.contains("@memphis"));
 
     // allowed becuase his netgroup is in ACL

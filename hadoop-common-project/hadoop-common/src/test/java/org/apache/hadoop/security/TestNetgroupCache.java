@@ -20,7 +20,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.After;
 import org.junit.Test;
@@ -110,7 +112,7 @@ public class TestNetgroupCache {
   }
 
   private void verifyGroupMembership(String user, int size, String group) {
-    List<String> groups = new ArrayList<String>();
+    Set<String> groups = new HashSet<String>();
     NetgroupCache.getNetgroups(user, groups);
     assertEquals(size, groups.size());
     if (size > 0) {
