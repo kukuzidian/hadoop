@@ -654,7 +654,9 @@ public class CapacityScheduler extends
             return user;
           }
           else if (mapping.queue.equals(PRIMARY_GROUP_MAPPING)) {
-            return groups.getGroups(user).get(0);
+            Set<String> groupSet = groups.getGroups(user);
+            String[] groupArray = groupSet.toArray(new String[groupSet.size()]);
+            return groupArray[0];
           }
           else {
             return mapping.queue;
