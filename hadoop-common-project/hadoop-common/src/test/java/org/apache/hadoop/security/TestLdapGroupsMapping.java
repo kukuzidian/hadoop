@@ -26,7 +26,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.naming.CommunicationException;
 import javax.naming.NamingEnumeration;
@@ -99,7 +101,7 @@ public class TestLdapGroupsMapping {
         any(SearchControls.class)))
         .thenReturn(mockUserNamingEnum, mockGroupNamingEnum);
     
-    doTestGetGroups(Arrays.asList(testGroups), 2);
+    doTestGetGroups(new HashSet<String>(Arrays.asList(testGroups)), 2);
   }
 
   @Test
@@ -112,7 +114,7 @@ public class TestLdapGroupsMapping {
         .thenReturn(mockUserNamingEnum, mockGroupNamingEnum);
     
     // Although connection is down but after reconnected it still should retrieve the result groups
-    doTestGetGroups(Arrays.asList(testGroups), 1 + 2); // 1 is the first failure call 
+    doTestGetGroups(new HashSet<String>(Arrays.asList(testGroups)), 1 + 2); // 1 is the first failure call
   }
 
   @Test
@@ -123,11 +125,11 @@ public class TestLdapGroupsMapping {
         .thenThrow(new CommunicationException("Connection is closed"));
     
     // Ldap server is down, no groups should be retrieved
-    doTestGetGroups(Arrays.asList(new String[] {}), 
+    doTestGetGroups(new HashSet<String>(Arrays.asList(new String[] {})),
         1 + LdapGroupsMapping.RECONNECT_RETRY_COUNT); // 1 is the first normal call
   }
   
-  private void doTestGetGroups(List<String> expectedGroups, int searchTimes) throws IOException, NamingException {  
+  private void doTestGetGroups(Set<String> expectedGroups, int searchTimes) throws IOException, NamingException {
     Configuration conf = new Configuration();
     // Set this, so we don't throw an exception
     conf.set(LdapGroupsMapping.LDAP_URL_KEY, "ldap://test");
@@ -135,7 +137,7 @@ public class TestLdapGroupsMapping {
     mappingSpy.setConf(conf);
     // Username is arbitrary, since the spy is mocked to respond the same,
     // regardless of input
-    List<String> groups = mappingSpy.getGroups("some_user");
+    Set<String> groups = mappingSpy.getGroups("some_user");
     
     Assert.assertEquals(expectedGroups, groups);
     

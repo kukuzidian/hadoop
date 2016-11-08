@@ -21,6 +21,8 @@ import static org.junit.Assert.*;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+
 import org.apache.hadoop.security.GroupMappingServiceProvider;
 import org.apache.hadoop.security.JniBasedUnixGroupsMapping;
 import org.apache.hadoop.security.ShellBasedUnixGroupsMapping;
@@ -51,9 +53,9 @@ public class TestJNIGroupsMapping {
   }
   private void testForUser(String user) throws Exception {
     GroupMappingServiceProvider g = new ShellBasedUnixGroupsMapping();
-    List<String> shellBasedGroups = g.getGroups(user);
+    Set<String> shellBasedGroups = g.getGroups(user);
     g = new JniBasedUnixGroupsMapping();
-    List<String> jniBasedGroups = g.getGroups(user);
+    Set<String> jniBasedGroups = g.getGroups(user);
     
     String[] shellBasedGroupsArray = shellBasedGroups.toArray(new String[0]);
     Arrays.sort(shellBasedGroupsArray);
