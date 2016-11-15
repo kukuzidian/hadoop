@@ -29,6 +29,11 @@ public class ExternalTrash {
 
     private Map<String, Float> user2Interval = new HashMap<>();
 
+    static {
+        // make sure only administrator can run this tool.
+        System.setProperty("HADOOP_USER_NAME", "hadoop");
+    }
+
     public ExternalTrash(Configuration conf) {
         this.conf = conf;
 
@@ -92,6 +97,11 @@ public class ExternalTrash {
 
 
     public static void main(String[] args) throws IOException {
+
+        if (ExternalTrash.class.getClassLoader().getResource(CONF_FILENAME) == null) {
+            LOG.error("can't find " + CONF_FILENAME);
+            return;
+        }
 
         Configuration conf = new Configuration();
         conf.addResource(CONF_FILENAME);
