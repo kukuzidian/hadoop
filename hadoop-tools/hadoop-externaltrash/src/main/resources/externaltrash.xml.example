@@ -6,19 +6,19 @@
     <property>
         <name>fs.trash.interval</name>
         <value>1440</value>
-        <description>default trash interval of all user.</description>
+        <description>default trash interval in minutes of all user.</description>
     </property>
 
     <property>
         <name>fs.user.A.trash.interval</name>
         <value>2880</value>
-        <description>trash interval of user A.</description>
+        <description>trash interval in minutes of user A.</description>
     </property>
 
     <property>
         <name>fs.user.B.trash.interval</name>
         <value>4320</value>
-        <description>trash interval of user B.</description>
+        <description>trash interval in minutes of user B.</description>
     </property>
 
 </configuration>
