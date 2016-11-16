@@ -105,7 +105,6 @@ public class ExternalTrash implements Runnable {
             try {                                     // sleep for interval
                 Thread.sleep(end - now);
             } catch (InterruptedException e) {
-                LOG.warn(StringUtils.stringifyException(e));
                 break;                                  // exit on interrupt
             }
 

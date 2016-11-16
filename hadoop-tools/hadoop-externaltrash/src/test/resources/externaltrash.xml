@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+
+<configuration>
+
+    <property>
+        <name>fs.user.A.trash.interval</name>
+        <value>0.3</value>
+    </property>
+
+    <property>
+        <name>fs.user.B.trash.interval</name>
+        <value>0.4</value>
+    </property>
+
+</configuration>
