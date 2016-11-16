@@ -95,6 +95,8 @@ public class ExternalTrash implements Runnable {
     @Override
     public void run() {
 
+        LOG.info("ExternalTrashThread started.");
+
         Path homesParent = fs.getHomeDirectory().getParent();
 
         while (true) {
@@ -103,6 +105,7 @@ public class ExternalTrash implements Runnable {
             try {                                     // sleep for interval
                 Thread.sleep(end - now);
             } catch (InterruptedException e) {
+                LOG.warn(StringUtils.stringifyException(e));
                 break;                                  // exit on interrupt
             }
 
@@ -160,7 +163,7 @@ public class ExternalTrash implements Runnable {
         return (time / interval) * interval;
     }
 
-    public static void main(String[] args) throws IOException, InterruptedException {
+    public static void main(String[] args) {
 
         StringUtils.startupShutdownMessage(ExternalTrash.class, args, LOG);
 
@@ -169,13 +172,18 @@ public class ExternalTrash implements Runnable {
             return;
         }
 
-        ExternalTrash externalTrash = new ExternalTrash(new Configuration());
+        try {
+            ExternalTrash externalTrash = new ExternalTrash(new Configuration());
 
-        Thread externalTrashThread = new Thread(externalTrash, "External Trash Thread");
-        externalTrashThread.setDaemon(true);
-        externalTrashThread.start();
+            Thread externalTrashThread = new Thread(externalTrash, "External Trash Thread");
+            externalTrashThread.setDaemon(true);
+            externalTrashThread.start();
 
-        externalTrashThread.join();
+            externalTrashThread.join();
+        } catch (Exception e) {
+            LOG.fatal("Caught Exception: " + StringUtils.stringifyException(e));
+        }
+
     }
 
 
