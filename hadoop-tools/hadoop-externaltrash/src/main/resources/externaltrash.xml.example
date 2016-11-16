@@ -4,6 +4,12 @@
 <configuration>
 
     <property>
+        <name>fs.user.trash.interval.enable</name>
+        <value>true</value>
+        <description>if false (default) only print log, else process trash.</description>
+    </property>
+
+    <property>
         <name>fs.user.A.trash.interval</name>
         <value>2880</value>
         <description>trash interval in minutes of user A.</description>

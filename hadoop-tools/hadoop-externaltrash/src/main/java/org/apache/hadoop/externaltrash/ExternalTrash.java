@@ -27,12 +27,17 @@ public class ExternalTrash implements Runnable {
     private static final String CONF_PREFIX = "fs.user.";
     private static final String CONF_SUFFIX = ".trash.interval";
 
+    private static final String EXTERNAL_TRASH_ENABLE_KEY = "fs.user.trash.interval.enable";
+    private static final boolean EXTERNAL_TRASH_ENABLE_DEFAULT = false;
+
     private static final int MSECS_PER_MINUTE = 60*1000;
 
     private final FileSystem fs;
     private final Configuration conf;
 
     private long emptierInterval;
+
+    private boolean enabled = false;
 
     private Map<String, Float> user2Interval = new HashMap<>();
 
@@ -69,6 +74,9 @@ public class ExternalTrash implements Runnable {
 
         Configuration trashConf = new Configuration(false);
         trashConf.addResource(CONF_FILENAME);
+
+        this.enabled = trashConf.getBoolean(EXTERNAL_TRASH_ENABLE_KEY, EXTERNAL_TRASH_ENABLE_DEFAULT);
+        LOG.info("External Trash enabled = " + this.enabled);
 
         // load user' trash interval config
         for (Map.Entry<String, String> entry : trashConf) {
@@ -132,6 +140,13 @@ public class ExternalTrash implements Runnable {
                         String user = home.getPath().getName();
                         if (this.user2Interval.containsKey(user)) {
                             copyConf.setFloat(FS_TRASH_INTERVAL_KEY, this.user2Interval.get(user));
+                        }
+
+                        LOG.info("Processing " + home.getPath().toUri().getPath() + "'s trash. " +
+                                "Deletion interval(minutes) = " + copyConf.get(FS_TRASH_INTERVAL_KEY));
+
+                        if (!this.enabled) {
+                            continue;
                         }
 
                         try {
