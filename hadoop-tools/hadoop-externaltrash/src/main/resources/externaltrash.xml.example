@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+
+<configuration>
+
+    <property>
+        <name>fs.user.trash.interval.enable</name>
+        <value>true</value>
+        <description>if false (default) only print log, else process trash.</description>
+    </property>
+
+    <property>
+        <name>fs.user.A.trash.interval</name>
+        <value>2880</value>
+        <description>trash interval in minutes of user A.</description>
+    </property>
+
+    <property>
+        <name>fs.user.B.trash.interval</name>
+        <value>4320</value>
+        <description>trash interval in minutes of user B.</description>
+    </property>
+
+</configuration>

@@ -44,6 +44,7 @@ function print_usage(){
   echo "                       Hadoop jar and the required libraries"
   echo "  daemonlog            get/set the log level for each daemon"
   echo "  trace                view and modify Hadoop tracing settings"
+  echo "  externaltrash        run a external trash tool"
   echo ""
   echo "Most commands print help when invoked w/o parameters."
 }
@@ -118,6 +119,9 @@ case $COMMAND in
       CLASS=org.apache.hadoop.log.LogLevel
     elif [ "$COMMAND" = "archive" ] ; then
       CLASS=org.apache.hadoop.tools.HadoopArchives
+      CLASSPATH=${CLASSPATH}:${TOOL_PATH}
+    elif [ "$COMMAND" = "externaltrash" ]; then
+      CLASS=org.apache.hadoop.externaltrash.ExternalTrash
       CLASSPATH=${CLASSPATH}:${TOOL_PATH}
     elif [ "$COMMAND" = "credential" ] ; then
       CLASS=org.apache.hadoop.security.alias.CredentialShell
