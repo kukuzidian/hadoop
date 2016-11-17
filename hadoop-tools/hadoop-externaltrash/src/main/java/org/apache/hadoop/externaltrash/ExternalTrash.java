@@ -31,7 +31,7 @@ public class ExternalTrash implements Runnable {
     private static final boolean EXTERNAL_TRASH_ENABLE_DEFAULT = false;
 
     private static final String FS_TRASH_CHECKPOINT_INTERVAL_DELTA_KEY = "fs.trash.checkpoint.interval.delta";
-    private static final float FS_TRASH_CHECKPOINT_INTERVAL_DELTA_DEFAULT = 0;
+    private static final float FS_TRASH_CHECKPOINT_INTERVAL_DELTA_DEFAULT = 60; // one hour
 
     private static final int MSECS_PER_MINUTE = 60*1000;
 
