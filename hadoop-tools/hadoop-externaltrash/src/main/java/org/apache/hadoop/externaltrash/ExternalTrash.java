@@ -121,7 +121,7 @@ public class ExternalTrash implements Runnable {
 
         while (true) {
             long now = Time.now();
-            long end = ceiling(Time.now(), emptierInterval) + this.emptierIntervalDelta;
+            long end = ceiling(now, emptierInterval) + this.emptierIntervalDelta;
             try {                                     // sleep for interval
                 Thread.sleep(end - now);
             } catch (InterruptedException e) {
