@@ -10,6 +10,11 @@
     </property>
 
     <property>
+        <name>fs.trash.checkpoint.interval.delta</name>
+        <value>60</value>
+    </property>
+
+    <property>
         <name>fs.user.A.trash.interval</name>
         <value>2880</value>
         <description>trash interval in minutes of user A.</description>
