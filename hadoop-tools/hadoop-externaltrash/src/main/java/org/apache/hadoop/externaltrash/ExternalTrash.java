@@ -30,12 +30,17 @@ public class ExternalTrash implements Runnable {
     private static final String EXTERNAL_TRASH_ENABLE_KEY = "fs.user.trash.interval.enable";
     private static final boolean EXTERNAL_TRASH_ENABLE_DEFAULT = false;
 
+    private static final String FS_TRASH_CHECKPOINT_INTERVAL_DELTA_KEY = "fs.trash.checkpoint.interval.delta";
+    private static final float FS_TRASH_CHECKPOINT_INTERVAL_DELTA_DEFAULT = 0;
+
     private static final int MSECS_PER_MINUTE = 60*1000;
 
     private final FileSystem fs;
     private final Configuration conf;
 
     private long emptierInterval;
+
+    private long emptierIntervalDelta; // avoid doing checkpoint at the same time with NameNode.
 
     private boolean enabled = false;
 
@@ -78,6 +83,11 @@ public class ExternalTrash implements Runnable {
         this.enabled = trashConf.getBoolean(EXTERNAL_TRASH_ENABLE_KEY, EXTERNAL_TRASH_ENABLE_DEFAULT);
         LOG.info("External Trash enabled = " + this.enabled);
 
+        this.emptierIntervalDelta = (long)(trashConf.getFloat(
+                FS_TRASH_CHECKPOINT_INTERVAL_DELTA_KEY, FS_TRASH_CHECKPOINT_INTERVAL_DELTA_DEFAULT)
+                * MSECS_PER_MINUTE);
+        LOG.info("External Trash interval delta = " + (this.emptierIntervalDelta / MSECS_PER_MINUTE) + " minutes.");
+
         // load user' trash interval config
         for (Map.Entry<String, String> entry : trashConf) {
             if (!entry.getKey().startsWith(CONF_PREFIX) ||
@@ -107,9 +117,11 @@ public class ExternalTrash implements Runnable {
 
         Path homesParent = fs.getHomeDirectory().getParent();
 
+        reloadConfig();
+
         while (true) {
             long now = Time.now();
-            long end = ceiling(now, emptierInterval);
+            long end = ceiling(Time.now(), emptierInterval) + this.emptierIntervalDelta;
             try {                                     // sleep for interval
                 Thread.sleep(end - now);
             } catch (InterruptedException e) {
