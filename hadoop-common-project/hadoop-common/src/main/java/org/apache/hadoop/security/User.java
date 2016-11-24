@@ -35,6 +35,7 @@ import org.apache.hadoop.security.UserGroupInformation.AuthenticationMethod;
 class User implements Principal {
   private final String fullName;
   private final String shortName;
+  private final String password;
   private volatile AuthenticationMethod authMethod = null;
   private volatile LoginContext login = null;
   private volatile long lastLogin = 0;
@@ -42,8 +43,16 @@ class User implements Principal {
   public User(String name) {
     this(name, null, null);
   }
+
+  public User(String name, String passwd) {
+    this(name, passwd, null, null);
+  }
   
   public User(String name, AuthenticationMethod authMethod, LoginContext login) {
+    this(name, null, authMethod, login);
+  }
+
+  public User(String name, String passwd, AuthenticationMethod authMethod, LoginContext login) {
     try {
       shortName = new HadoopKerberosName(name).getShortName();
     } catch (IOException ioe) {
@@ -51,6 +60,7 @@ class User implements Principal {
                                          +": " + ioe.toString(), ioe);
     }
     fullName = name;
+    password = passwd;
 
     this.authMethod = authMethod;
     this.login = login;
@@ -71,12 +81,24 @@ class User implements Principal {
   public String getShortName() {
     return shortName;
   }
+
+  /**
+   * Get the user's password.
+   * @return password
+   */
+  public String getPassword() {
+    return password;
+  }
   
   @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
     } else if (o == null || getClass() != o.getClass()) {
+      return false;
+    } else if ((password != null && ((User) o).password == null)
+            || (password == null && ((User) o).password != null)
+            || (password != null && !password.equals(((User) o).password))) {
       return false;
     } else {
       return ((fullName.equals(((User) o).fullName)) && (authMethod == ((User) o).authMethod));
