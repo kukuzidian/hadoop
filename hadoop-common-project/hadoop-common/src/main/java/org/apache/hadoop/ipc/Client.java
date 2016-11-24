@@ -1703,7 +1703,7 @@ public class Client {
     
     @Override
     public String toString() {
-      return address.toString();
+      return ticket.toString() + " - " + address.toString();
     }
   }  
 
