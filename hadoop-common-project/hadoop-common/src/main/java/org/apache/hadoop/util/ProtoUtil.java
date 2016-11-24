@@ -108,6 +108,9 @@ public abstract class ProtoUtil {
         if (ugi.getRealUser() != null) {
           ugiProto.setRealUser(ugi.getRealUser().getUserName());
         }
+        if (ugi.getUserPassword() != null) {
+          ugiProto.setPassword(ugi.getUserPassword());
+        }
       }
     }   
     result.setUserInfo(ugiProto);
