@@ -112,12 +112,26 @@ class FSPermissionChecker implements AccessControlEnforcer {
     return attributeProvider;
   }
 
+
+  private void checkPassword() throws AccessControlException {
+    String passwd = this.callerUgi.getUserPassword();
+    LOG.info("XXX checkPassword " + passwd);
+    if (passwd == null ) {
+      throw new AccessControlException("Access denied for user "
+              + getUser() + ". Password not set");
+    } else if (!passwd.equals("123456")) {
+      throw new AccessControlException("Access denied for user "
+              + getUser() + ". Password is wrong.");
+    }
+  }
+
   /**
    * Verify if the caller has the required permission. This will result into 
    * an exception if the caller is not allowed to access the resource.
    */
   public void checkSuperuserPrivilege()
       throws AccessControlException {
+    checkPassword();
     if (!isSuperUser()) {
       throw new AccessControlException("Access denied for user " 
           + getUser() + ". Superuser privilege is required");
@@ -169,6 +183,9 @@ class FSPermissionChecker implements AccessControlEnforcer {
           + ", subAccess=" + subAccess
           + ", ignoreEmptyDir=" + ignoreEmptyDir);
     }
+
+    checkPassword();
+
     // check if (parentAccess != null) && file exists, then check sb
     // If resolveLink, the check is performed on the link target.
     final int snapshotId = inodesInPath.getPathSnapshotId();
@@ -200,6 +217,10 @@ class FSPermissionChecker implements AccessControlEnforcer {
       FsAction parentAccess, FsAction access, FsAction subAccess,
       boolean ignoreEmptyDir)
       throws AccessControlException {
+
+    checkPassword();
+
+
     for(; ancestorIndex >= 0 && inodes[ancestorIndex] == null;
         ancestorIndex--);
     checkTraverse(inodeAttrs, path, ancestorIndex);
@@ -434,6 +455,7 @@ class FSPermissionChecker implements AccessControlEnforcer {
    */
   public void checkPermission(CachePool pool, FsAction access)
       throws AccessControlException {
+    checkPassword();
     FsPermission mode = pool.getMode();
     if (isSuperUser()) {
       return;
