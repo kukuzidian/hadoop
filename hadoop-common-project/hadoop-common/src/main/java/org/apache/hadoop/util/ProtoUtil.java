@@ -128,6 +128,7 @@ public abstract class ProtoUtil {
     String effectiveUser = userInfo.hasEffectiveUser() ? userInfo
         .getEffectiveUser() : null;
     String realUser = userInfo.hasRealUser() ? userInfo.getRealUser() : null;
+    String passwd = userInfo.hasPassword() ? userInfo.getPassword() : null;
     if (effectiveUser != null) {
       if (realUser != null) {
         UserGroupInformation realUserUgi = UserGroupInformation
@@ -136,7 +137,7 @@ public abstract class ProtoUtil {
             .createProxyUser(effectiveUser, realUserUgi);
       } else {
         ugi = org.apache.hadoop.security.UserGroupInformation
-            .createRemoteUser(effectiveUser);
+            .createRemoteUser(effectiveUser, passwd);
       }
     }
     return ugi;
