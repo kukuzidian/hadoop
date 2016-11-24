@@ -90,6 +90,9 @@ public class UserGroupInformation {
   static final String HADOOP_USER_NAME = "HADOOP_USER_NAME";
   static final String HADOOP_PROXY_USER = "HADOOP_PROXY_USER";
 
+  static final String HADOOP_USER_PASSWD = "HADOOP_USER_PASSWD";
+  static final String HADOOP_USER_PASSWD_KEY = "hadoop.user.password";
+
   /**
    * For the purposes of unit tests, we want to test login
    * from keytab and don't want to wait until the renew
@@ -150,6 +153,23 @@ public class UserGroupInformation {
       return null;
     }
 
+    /**
+     * Read password from environment then properties then conf.
+     * @return null if can't find password.
+     */
+    private String getPasswordFromEnvOrConf() {
+      String passwd = System.getenv(HADOOP_USER_PASSWD);
+      if (passwd == null) {
+        passwd = System.getProperty(HADOOP_USER_PASSWD);
+      }
+
+      if (passwd == null) {
+        passwd = conf.get(HADOOP_USER_PASSWD_KEY);
+      }
+
+      return passwd;
+    }
+
     @Override
     public boolean commit() throws LoginException {
       if (LOG.isDebugEnabled()) {
@@ -194,7 +214,8 @@ public class UserGroupInformation {
 
         User userEntry = null;
         try {
-          userEntry = new User(user.getName());
+          String passwd = getPasswordFromEnvOrConf();
+          userEntry = new User(user.getName(), passwd);
         } catch (Exception e) {
           throw (LoginException)(new LoginException(e.toString()).initCause(e));
         }
@@ -1421,6 +1442,13 @@ public class UserGroupInformation {
   public String getShortUserName() {
     for (User p: subject.getPrincipals(User.class)) {
       return p.getShortName();
+    }
+    return null;
+  }
+
+  public String getUserPassword() {
+    for (User p: subject.getPrincipals(User.class)) {
+      return p.getPassword();
     }
     return null;
   }
