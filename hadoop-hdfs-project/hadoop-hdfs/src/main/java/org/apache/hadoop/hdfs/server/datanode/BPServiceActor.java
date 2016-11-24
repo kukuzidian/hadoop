@@ -58,6 +58,7 @@ import org.apache.hadoop.hdfs.server.protocol.StorageReport;
 import org.apache.hadoop.hdfs.server.protocol.VolumeFailureSummary;
 import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.ipc.RemoteException;
+import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.util.Time;
 import org.apache.hadoop.util.VersionInfo;
 import org.apache.hadoop.util.VersionUtil;
@@ -175,7 +176,7 @@ class BPServiceActor implements Runnable {
       } catch(SocketTimeoutException e) {  // namenode is busy
         LOG.warn("Problem connecting to server: " + nnAddr);
       } catch(IOException e ) {  // namenode is not available
-        LOG.warn("Problem connecting to server: " + nnAddr);
+        LOG.warn("Problem connecting to server: " + nnAddr + " " + StringUtils.stringifyException(e));
       }
       
       // try again in a second
