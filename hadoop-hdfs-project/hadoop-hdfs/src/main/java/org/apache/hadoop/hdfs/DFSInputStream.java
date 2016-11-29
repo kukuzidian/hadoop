@@ -654,8 +654,11 @@ implements ByteBufferReadable, CanSetDropBehind, CanSetReadahead,
           curCachingStrategy = cachingStrategy;
           shortCircuitForbidden = shortCircuitForbidden();
         }
-        DFSClient.LOG.info("Try connecting " + targetAddr + " for "
-            + src + " " + target + " at " + blk);
+        if (DFSClient.LOG.isInfoEnabled()) {
+          DFSClient.LOG.info("Try connecting " + targetAddr + " for "
+              + src + " " + target + " at " + blk);
+        }
+
         blockReader = new BlockReaderFactory(dfsClient.getConf()).
             setInetSocketAddress(targetAddr).
             setRemotePeerFactory(dfsClient).
