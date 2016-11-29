@@ -42,6 +42,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceAudience.Private;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.io.Text;
 import org.apache.hadoop.security.Credentials;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.security.token.Token;
@@ -65,6 +66,7 @@ import org.apache.hadoop.yarn.exceptions.YarnRuntimeException;
 import org.apache.hadoop.yarn.factories.RecordFactory;
 import org.apache.hadoop.yarn.factory.providers.RecordFactoryProvider;
 import org.apache.hadoop.yarn.security.AMRMTokenIdentifier;
+import org.apache.hadoop.yarn.security.ContainerTokenIdentifier;
 import org.apache.hadoop.yarn.security.client.ClientToAMTokenIdentifier;
 import org.apache.hadoop.yarn.server.resourcemanager.ApplicationMasterService;
 import org.apache.hadoop.yarn.server.resourcemanager.ClusterMetrics;
@@ -1006,6 +1008,23 @@ public class RMAppAttemptImpl implements RMAppAttempt, Recoverable {
       // Set the masterContainer
       appAttempt.setMasterContainer(amContainerAllocation.getContainers()
           .get(0));
+
+      Container masterContainer =appAttempt.getMasterContainer();
+      org.apache.hadoop.yarn.api.records.Token rawToken = masterContainer.getContainerToken();
+      org.apache.hadoop.security.token.Token<ContainerTokenIdentifier> token =
+              new org.apache.hadoop.security.token.Token<ContainerTokenIdentifier>(
+                      rawToken.getIdentifier()
+                              .array(), rawToken.getPassword().array(), new Text(
+                      rawToken.getKind()),
+                      new Text(rawToken.getService()));
+
+
+      try {
+        LOG.info("XXX RMAppAttempImpl.AMContainerAllocatedTransition " + token.decodeIdentifier());
+      } catch (IOException e) {
+        LOG.info("XXX hehe");
+      }
+
       RMContainerImpl rmMasterContainer = (RMContainerImpl)appAttempt.scheduler
           .getRMContainer(appAttempt.getMasterContainer().getId());
       rmMasterContainer.setAMContainer(true);

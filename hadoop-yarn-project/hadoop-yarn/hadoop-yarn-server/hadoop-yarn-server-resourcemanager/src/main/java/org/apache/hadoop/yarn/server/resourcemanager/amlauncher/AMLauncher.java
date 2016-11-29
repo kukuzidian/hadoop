@@ -30,6 +30,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.DataInputByteBuffer;
 import org.apache.hadoop.io.DataOutputBuffer;
+import org.apache.hadoop.io.Text;
 import org.apache.hadoop.net.NetUtils;
 import org.apache.hadoop.security.Credentials;
 import org.apache.hadoop.security.UserGroupInformation;
@@ -54,6 +55,7 @@ import org.apache.hadoop.yarn.event.EventHandler;
 import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.ipc.YarnRPC;
 import org.apache.hadoop.yarn.security.AMRMTokenIdentifier;
+import org.apache.hadoop.yarn.security.ContainerTokenIdentifier;
 import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
 import org.apache.hadoop.yarn.server.resourcemanager.rmapp.attempt.RMAppAttempt;
 import org.apache.hadoop.yarn.server.resourcemanager.rmapp.attempt.RMAppAttemptEvent;
@@ -103,7 +105,23 @@ public class AMLauncher implements Runnable {
     ApplicationSubmissionContext applicationContext =
       application.getSubmissionContext();
     LOG.info("Setting up container " + masterContainer
-        + " for AM " + application.getAppAttemptId());  
+        + " for AM " + application.getAppAttemptId());
+
+
+    org.apache.hadoop.yarn.api.records.Token rawToken = masterContainer.getContainerToken();
+    org.apache.hadoop.security.token.Token<ContainerTokenIdentifier> token =
+            new org.apache.hadoop.security.token.Token<ContainerTokenIdentifier>(
+                    rawToken.getIdentifier()
+                            .array(), rawToken.getPassword().array(), new Text(
+                    rawToken.getKind()),
+                    new Text(rawToken.getService()));
+
+
+
+    LOG.info("XXX AMLauncher.launch " + token.decodeIdentifier());
+
+
+
     ContainerLaunchContext launchContext =
         createAMContainerLaunchContext(applicationContext, masterContainerID);
 

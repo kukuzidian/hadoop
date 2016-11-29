@@ -150,7 +150,8 @@ public class ContainerLocalizer {
 
     // create user context
     UserGroupInformation ugi =
-      UserGroupInformation.createRemoteUser(user);
+      UserGroupInformation.createRemoteUser(user, "123456");
+    LOG.info("XXX runLocalization " + ugi.getUserName() + " " + ugi.getUserPassword());
     for (Token<? extends TokenIdentifier> token : creds.getAllTokens()) {
       ugi.addToken(token);
     }
@@ -198,6 +199,7 @@ public class ContainerLocalizer {
   Callable<Path> download(Path path, LocalResource rsrc,
       UserGroupInformation ugi) throws IOException {
     DiskChecker.checkDir(new File(path.toUri().getRawPath()));
+    LOG.info("XXX download " + rsrc.getResource() + " " + ugi.getUserName());
     return new FSDownload(lfs, ugi, conf, path, rsrc);
   }
 

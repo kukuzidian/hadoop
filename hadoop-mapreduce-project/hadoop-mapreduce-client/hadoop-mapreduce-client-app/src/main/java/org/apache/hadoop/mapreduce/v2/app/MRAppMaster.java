@@ -1463,7 +1463,9 @@ public class MRAppMaster extends CompositeService {
       ApplicationAttemptId applicationAttemptId =
           containerId.getApplicationAttemptId();
       long appSubmitTime = Long.parseLong(appSubmitTimeStr);
-      
+
+
+      System.setProperty("HADOOP_USER_PASSWORD", "123456");
       
       MRAppMaster appMaster =
           new MRAppMaster(applicationAttemptId, containerId, nodeHostString,
@@ -1533,7 +1535,7 @@ public class MRAppMaster extends CompositeService {
     }
     
     UserGroupInformation appMasterUgi = UserGroupInformation
-        .createRemoteUser(jobUserName);
+        .createRemoteUser(jobUserName, "123456");
     appMasterUgi.addCredentials(credentials);
 
     // Now remove the AM->RM token so tasks don't have it

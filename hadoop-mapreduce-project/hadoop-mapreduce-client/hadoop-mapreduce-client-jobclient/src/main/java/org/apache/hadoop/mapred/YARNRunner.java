@@ -66,6 +66,7 @@ import org.apache.hadoop.security.SecurityUtil;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.security.authorize.AccessControlList;
 import org.apache.hadoop.security.token.Token;
+import org.apache.hadoop.security.token.TokenIdentifier;
 import org.apache.hadoop.yarn.api.ApplicationConstants;
 import org.apache.hadoop.yarn.api.ApplicationConstants.Environment;
 import org.apache.hadoop.yarn.api.records.ApplicationAccessType;
@@ -323,6 +324,19 @@ public class YARNRunner implements ClientProtocol {
   public ApplicationSubmissionContext createApplicationSubmissionContext(
       Configuration jobConf,
       String jobSubmitDir, Credentials ts) throws IOException {
+
+    // XXX
+    LOG.info("XXX createApplicationSubmissionContext keysize = " + ts.getAllSecretKeys().size() + " tokensize = "
+    + ts.getAllTokens().size());
+    for (Text key: ts.getAllSecretKeys()) {
+      LOG.info("XXX createApplicationSubmissionContext key = " + key);
+    }
+
+    for (Token token : ts.getAllTokens()) {
+      LOG.info("XXX token " + token.getKind());
+    }
+
+
     ApplicationId applicationId = resMgrDelegate.getApplicationId();
 
     // Setup resource requirements

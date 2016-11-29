@@ -816,6 +816,7 @@ public class ResourceLocalizationService extends CompositeService
             // explicitly synchronize pending here to avoid future task
             // completing and being dequeued before pending updated
             synchronized (pending) {
+              LOG.info("XXX addResource " + resource.getResource());
               pending.put(queue.submit(new FSDownload(lfs, null, conf,
                   publicDirDestPath, resource, request.getContext().getStatCache())),
                   request);
