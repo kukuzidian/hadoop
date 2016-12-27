@@ -18,6 +18,7 @@
 
 package org.apache.hadoop.test;
 
+import org.apache.hadoop.hdfs.NNBenchDD;
 import org.apache.hadoop.io.TestSequenceFile;
 import org.apache.hadoop.mapred.BigMapOutput;
 import org.apache.hadoop.mapred.GenericMRLoadGenerator;
@@ -91,6 +92,8 @@ public class MapredTestDriver {
                    "A job that sleeps at each map and reduce task.");
       pgd.addClass("nnbench", NNBench.class, 
           "A benchmark that stresses the namenode.");
+      pgd.addClass("nnbenchdd", NNBenchDD.class,
+              "A benchmark that stresses the namenode with multiply threads mapper.");
       pgd.addClass("testfilesystem", TestFileSystem.class, 
           "A test for FileSystem read/write.");
       pgd.addClass(TestDFSIO.class.getSimpleName(), TestDFSIO.class, 
