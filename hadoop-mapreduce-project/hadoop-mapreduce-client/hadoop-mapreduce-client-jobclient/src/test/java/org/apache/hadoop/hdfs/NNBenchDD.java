@@ -645,14 +645,15 @@ public class NNBenchDD {
 
       @Override
       public void run() {
+        String ourBase = prefix + "/" + id + "/" + prefix;
         if (op.equals(OP_CREATE_WRITE)) {
-          doCreateWriteOp(prefix + id, reporter);
+          doCreateWriteOp(ourBase, reporter);
         } else if (op.equals(OP_OPEN_READ)) {
-          doOpenReadOp(prefix + id, reporter);
+          doOpenReadOp(ourBase, reporter);
         } else if (op.equals(OP_RENAME)) {
-          doRenameOp(prefix + id, reporter);
+          doRenameOp(ourBase, reporter);
         } else if (op.equals(OP_DELETE)) {
-          doDeleteOp(prefix + id, reporter);
+          doDeleteOp(ourBase, reporter);
         } else {
           throw new IllegalArgumentException(
                   "unsupported operation [" + op + "]");
