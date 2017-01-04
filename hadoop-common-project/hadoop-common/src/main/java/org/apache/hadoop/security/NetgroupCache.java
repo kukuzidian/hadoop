@@ -46,7 +46,7 @@ public class NetgroupCache {
    * @param groups put groups into this List
    */
   public static void getNetgroups(final String user,
-      List<String> groups) {
+      Set<String> groups) {
     Set<String> userGroups = userToNetgroupsMap.get(user);
     //ConcurrentHashMap does not allow null values; 
     //So null value check can be used to check if the key exists

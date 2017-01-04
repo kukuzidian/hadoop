@@ -24,10 +24,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -264,8 +261,8 @@ public class TestHsWebServicesAcls {
   private static class NullGroupsProvider
       implements GroupMappingServiceProvider {
     @Override
-    public List<String> getGroups(String user) throws IOException {
-      return Collections.emptyList();
+    public Set<String> getGroups(String user) throws IOException {
+      return new HashSet<String>();
     }
 
     @Override

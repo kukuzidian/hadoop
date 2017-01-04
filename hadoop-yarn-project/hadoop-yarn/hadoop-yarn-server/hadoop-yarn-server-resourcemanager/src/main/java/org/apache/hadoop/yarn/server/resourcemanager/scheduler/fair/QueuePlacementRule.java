@@ -146,7 +146,9 @@ public abstract class QueuePlacementRule {
     protected String getQueueForApp(String requestedQueue, String user,
         Groups groups, Map<FSQueueType, Set<String>> configuredQueues)
         throws IOException {
-      return "root." + cleanName(groups.getGroups(user).get(0));
+      Set<String> groupSet = groups.getGroups(user);
+      String[] groupArray = groupSet.toArray(new String[groupSet.size()]);
+      return "root." + cleanName(groupArray[0]);
     }
     
     @Override
@@ -166,9 +168,10 @@ public abstract class QueuePlacementRule {
     protected String getQueueForApp(String requestedQueue, String user,
         Groups groups, Map<FSQueueType, Set<String>> configuredQueues)
         throws IOException {
-      List<String> groupNames = groups.getGroups(user);
+      Set<String> groupNames = groups.getGroups(user);
+      String[] groupNamesArray = groupNames.toArray(new String[groupNames.size()]);
       for (int i = 1; i < groupNames.size(); i++) {
-        String group = cleanName(groupNames.get(i));
+        String group = cleanName(groupNamesArray[i]);
         if (configuredQueues.get(FSQueueType.LEAF).contains("root." + group)
             || configuredQueues.get(FSQueueType.PARENT).contains(
                 "root." + group)) {

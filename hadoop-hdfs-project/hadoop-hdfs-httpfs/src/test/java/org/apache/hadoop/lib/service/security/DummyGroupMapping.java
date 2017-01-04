@@ -18,9 +18,7 @@
 package org.apache.hadoop.lib.service.security;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import org.apache.hadoop.security.GroupMappingServiceProvider;
 import org.apache.hadoop.test.HadoopUsersConfTestHelper;
@@ -29,16 +27,19 @@ public class DummyGroupMapping implements GroupMappingServiceProvider {
 
   @Override
   @SuppressWarnings("unchecked")
-  public List<String> getGroups(String user) throws IOException {
+  public Set<String> getGroups(String user) throws IOException {
+    Set<String> set = new HashSet<>();
     if (user.equals("root")) {
-      return Arrays.asList("admin");
-    }
-    else if (user.equals("nobody")) {
-      return Arrays.asList("nobody");
+      set.add("admin");
+    } else if (user.equals("nobody")) {
+      set.add("nobody");
     } else {
       String[] groups = HadoopUsersConfTestHelper.getHadoopUserGroups(user);
-      return (groups != null) ? Arrays.asList(groups) : Collections.EMPTY_LIST;
+      if (groups != null) {
+        set.addAll(Arrays.asList(groups));
+      }
     }
+    return set;
   }
 
   @Override

@@ -18,9 +18,8 @@
 package org.apache.hadoop.security;
 
 import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.StringTokenizer;
+import java.util.*;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience;
@@ -48,7 +47,7 @@ public class ShellBasedUnixGroupsMapping
    * @return list of groups for a given user
    */
   @Override
-  public List<String> getGroups(String user) throws IOException {
+  public Set<String> getGroups(String user) throws IOException {
     return getUnixGroups(user);
   }
 
@@ -78,7 +77,7 @@ public class ShellBasedUnixGroupsMapping
    *         group is returned first.
    * @throws IOException if encounter any error when running the command
    */
-  private static List<String> getUnixGroups(final String user) throws IOException {
+  private static Set<String> getUnixGroups(final String user) throws IOException {
     String result = "";
     try {
       result = Shell.execCommand(Shell.getGroupsForUserCommand(user));
@@ -86,7 +85,7 @@ public class ShellBasedUnixGroupsMapping
       // if we didn't get the group - just return empty list;
       LOG.warn("got exception trying to get groups for user " + user + ": "
           + e.getMessage());
-      return new LinkedList<String>();
+      return new HashSet<>();
     }
     
     StringTokenizer tokenizer =
@@ -105,7 +104,6 @@ public class ShellBasedUnixGroupsMapping
         }
       }
     }
-
-    return groups;
+    return new HashSet<String>(groups);
   }
 }

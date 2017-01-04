@@ -20,7 +20,9 @@ package org.apache.hadoop.security;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
@@ -74,7 +76,7 @@ public class JniBasedUnixGroupsMapping implements GroupMappingServiceProvider {
   }
 
   @Override
-  public List<String> getGroups(String user) throws IOException {
+  public Set<String> getGroups(String user) throws IOException {
     String[] groups = new String[0];
     try {
       groups = getGroupsForUser(user);
@@ -85,7 +87,7 @@ public class JniBasedUnixGroupsMapping implements GroupMappingServiceProvider {
         LOG.info("Error getting groups for " + user + ": " + e.getMessage());
       }
     }
-    return Arrays.asList(groups);
+    return new HashSet(Arrays.asList(groups));
   }
 
   @Override

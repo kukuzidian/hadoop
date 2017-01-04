@@ -20,6 +20,7 @@ package org.apache.hadoop.security;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -42,7 +43,7 @@ public class TestGroupFallback {
     Groups groups = new Groups(conf);
 
     String username = System.getProperty("user.name");
-    List<String> groupList = groups.getGroups(username);
+    Set<String> groupList = groups.getGroups(username);
 
     LOG.info(username + " has GROUPS: " + groupList.toString());
     assertTrue(groupList.size() > 0);
@@ -58,7 +59,7 @@ public class TestGroupFallback {
     Groups groups = new Groups(conf);
 
     String username = System.getProperty("user.name");
-    List<String> groupList = groups.getGroups(username);
+    Set<String> groupList = groups.getGroups(username);
 
     LOG.info(username + " has GROUPS: " + groupList.toString());
     assertTrue(groupList.size() > 0);
@@ -77,7 +78,7 @@ public class TestGroupFallback {
     Groups groups = new Groups(conf);
 
     String username = System.getProperty("user.name");
-    List<String> groupList = groups.getGroups(username);
+    Set<String> groupList = groups.getGroups(username);
 
     LOG.info(username + " has GROUPS: " + groupList.toString());
     assertTrue(groupList.size() > 0);
@@ -96,7 +97,7 @@ public class TestGroupFallback {
     Groups groups = new Groups(conf);
 
     String username = System.getProperty("user.name");
-    List<String> groupList = groups.getGroups(username);
+    Set<String> groupList = groups.getGroups(username);
 
     LOG.info(username + " has GROUPS: " + groupList.toString());
     assertTrue(groupList.size() > 0);

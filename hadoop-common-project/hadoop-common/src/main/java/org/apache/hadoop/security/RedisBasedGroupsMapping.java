@@ -67,7 +67,7 @@ public class RedisBasedGroupsMapping implements GroupMappingServiceProvider, Con
      * @return list of groups for a given user
      */
     @Override
-    public List<String> getGroups(String user) throws IOException {
+    public Set<String> getGroups(String user) throws IOException {
         return getGroupsFromRedis(user);
     }
 
@@ -96,8 +96,7 @@ public class RedisBasedGroupsMapping implements GroupMappingServiceProvider, Con
      * @return the groups list that the <code>user</code> belongs to
      * @throws IOException if encounter any error when running the command
      */
-    private List<String> getGroupsFromRedis(final String user) throws IOException {
-        ArrayList<String> result = null;
+    private Set<String> getGroupsFromRedis(final String user) throws IOException {
         Jedis jedis = null;
         try {
             if (pool == null) {
@@ -106,9 +105,8 @@ public class RedisBasedGroupsMapping implements GroupMappingServiceProvider, Con
             lock.readLock().lock();
             jedis = pool.getResource();
             Set<String> set = jedis.smembers("u_" + user);
-            result = new ArrayList<>(set);
-            result.add(user);
-            return result;
+            set.add(user);
+            return set;
         } catch(Exception e) {
             LOG.error(e);
         } finally {
@@ -123,7 +121,7 @@ public class RedisBasedGroupsMapping implements GroupMappingServiceProvider, Con
             }
         }
 
-        return result;
+        return null;
     }
 
     @Override

@@ -822,19 +822,19 @@ public class DFSTestUtil {
    */
   static class MockUnixGroupsMapping extends ShellBasedUnixGroupsMapping {
     static Map<String, String []> fakeUser2GroupsMap;
-    private static final List<String> defaultGroups;
+    private static final Set<String> defaultGroups;
     static {
-      defaultGroups = new ArrayList<String>(1);
+      defaultGroups = new HashSet<String>(1);
       defaultGroups.add("supergroup");
       fakeUser2GroupsMap = new HashMap<String, String[]>();
     }
   
     @Override
-    public List<String> getGroups(String user) throws IOException {
+    public Set<String> getGroups(String user) throws IOException {
       boolean found = false;
       
       // check to see if this is one of fake users
-      List<String> l = new ArrayList<String>();
+      Set<String> l = new HashSet<String>();
       for(String u : fakeUser2GroupsMap.keySet()) {  
         if(user.equals(u)) {
           found = true;

@@ -20,6 +20,7 @@ package org.apache.hadoop.security;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -47,7 +48,7 @@ public class JniBasedUnixGroupsMappingWithFallback implements
   }
 
   @Override
-  public List<String> getGroups(String user) throws IOException {
+  public Set<String> getGroups(String user) throws IOException {
     return impl.getGroups(user);
   }
 
