@@ -1534,7 +1534,7 @@ public class UserGroupInformation {
    * @return the list of users with the primary group first. If the command
    *    fails, it returns an empty list.
    */
-  public String[] getGroupNames() {
+  public synchronized String[] getGroupNames() {
     ensureInitialized();
     try {
       Set<String> result = groups.getGroups(getShortUserName());
