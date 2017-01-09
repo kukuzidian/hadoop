@@ -358,10 +358,10 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
     for (AuditLogger logger : auditLoggers) {
       if (logger instanceof HdfsAuditLogger) {
         HdfsAuditLogger hdfsLogger = (HdfsAuditLogger) logger;
-        hdfsLogger.logAuditEvent(succeeded, ugi.toString(), addr, cmd, src, dst,
+        hdfsLogger.logAuditEvent(succeeded, ugi.getUserName(), addr, cmd, src, dst,
             status, ugi, dtSecretManager);
       } else {
-        logger.logAuditEvent(succeeded, ugi.toString(), addr,
+        logger.logAuditEvent(succeeded, ugi.getUserName(), addr,
             cmd, src, dst, status);
       }
     }
